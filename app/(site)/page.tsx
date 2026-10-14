@@ -50,15 +50,43 @@ export default async function HomePage() {
     siteName = settings?.siteName || fallbackSiteName;
 
     const categoryList = Array.isArray(homeData?.categories) ? homeData.categories : [];
+    const primaryCats = categoryList.filter((c) => !c.parent && c.isActive !== false);
+    const subCats = categoryList.filter((c) => Boolean(c.parent) && c.isActive !== false);
+
+    const DEFAULT_SUBCATEGORIES_MAP: Record<string, string[]> = {
+      national: ['চট্টগ্রামের খবর', 'জাতীয় সংসদ', 'রাজধানীর খবর', 'আইন ও বিচার'],
+      politics: ['আওয়ামী লীগ', 'বিএনপি', 'জাতীয় পার্টি', 'নির্বাচন', 'অন্যান্য দল'],
+      economy: ['ব্যাংক ও বিমা', 'শেয়ারবাজার', 'বাণিজ্য', 'বাজেট', 'শিল্প ও কৃষি'],
+      international: ['ভারত', 'মধ্যপ্রাচ্য', 'আমেরিকা', 'ইউরোপ', 'চীন ও এশিয়া'],
+      sports: ['ক্রিকেট', 'ফুটবল', 'টেনিস', 'বিশ্বকাপ', 'অন্যান্য খেলা'],
+      entertainment: ['বলিউড', 'ঢালিউড', 'হলিউড', 'নাটক ও ওটিটি', 'গান'],
+      sarades: ['ঢাকা বিভাগ', 'চট্টগ্রাম বিভাগ', 'রাজশাহী বিভাগ', 'খুলনা বিভাগ', 'সিলেট বিভাগ', 'বরিশাল বিভাগ', 'রংপুর বিভাগ', 'ময়মনসিংহ বিভাগ'],
+      technology: ['মোবাইল', 'ইন্টারনেট', 'কৃত্রিম বুদ্ধিমত্তা', 'বিজ্ঞান ও মহাকাশ'],
+      health: ['পুষ্টি ও খাদ্য', 'রোগ প্রতিরোধ', 'চিকিৎসা সেবা', 'মানসিক স্বাস্থ্য'],
+    };
+
     navCategories = [
       'সর্বশেষ',
-      ...categoryList
-        .filter((category) => category && category.isActive !== false)
-        .map((category) => ({
-          name_bn: category.name_bn || category.name_en || category.slug,
-          name_en: category.name_en || category.slug,
-          slug: category.slug,
-        })),
+      ...primaryCats.map((cat) => {
+        const catId = String(cat._id);
+        const children = subCats.filter((sc) => {
+          const pId = typeof sc.parent === 'object' ? String(sc.parent._id) : String(sc.parent);
+          return pId === catId;
+        });
+
+        const subList =
+          children.length > 0
+            ? children.map((ch) => ({ name_bn: ch.name_bn, name_en: ch.name_en, slug: ch.slug }))
+            : (DEFAULT_SUBCATEGORIES_MAP[cat.slug] || []).map((name) => ({ name_bn: name, name_en: name, slug: name }));
+
+        return {
+          _id: catId,
+          name_bn: cat.name_bn || cat.name_en || cat.slug,
+          name_en: cat.name_en || cat.slug,
+          slug: cat.slug,
+          subCategories: subList,
+        };
+      }),
     ];
 
     const settingsTrending = Array.isArray(settings?.trendingKeywords) ? settings.trendingKeywords : [];

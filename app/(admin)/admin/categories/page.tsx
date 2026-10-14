@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
+import Link from 'next/link';
 import {
   Plus,
   GripVertical,
@@ -350,6 +351,22 @@ export default function CategoriesPage() {
           </Button>
         }
       />
+
+      {/* Navigation Tabs: Categories vs Sub Categories */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <Link
+          href="/admin/categories"
+          className="px-4 py-2 text-sm font-bold text-white bg-[#083c4d] dark:bg-[#1b7d95] rounded-xl shadow-xs transition-all"
+        >
+          Primary Categories (মূল ক্যাটাগরি)
+        </Link>
+        <Link
+          href="/admin/subcategories"
+          className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 rounded-xl transition-all"
+        >
+          Sub Categories (সাব-ক্যাটাগরি)
+        </Link>
+      </div>
 
       {/* Reorder notice */}
       <div className="p-3 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] dark:text-sky-300 text-xs sm:text-sm font-medium flex items-center gap-2">

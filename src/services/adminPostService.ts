@@ -423,6 +423,7 @@ export async function permanentDeletePost(id: string, session: AdminUserSession)
     details: `Permanently deleted article "${post.title}"`,
   });
 
+  revalidatePath('/');
   return { success: true };
 }
 
@@ -530,6 +531,7 @@ export async function bulkAdminPosts(
     case 'delete':
       const deleteRes = await Post.deleteMany({ _id: { $in: ids } });
       modifiedCount = deleteRes.deletedCount;
+      revalidatePath('/');
       break;
 
     case 'change_category':

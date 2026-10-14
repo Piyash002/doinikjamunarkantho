@@ -53,6 +53,7 @@ export async function getPostBySlug(slug, previewToken = null) {
       : Promise.resolve(null),
     Post.find({
       status: 'published',
+      isDeleted: false,
       category: post.category,
       _id: { $ne: post._id },
     })
@@ -61,13 +62,14 @@ export async function getPostBySlug(slug, previewToken = null) {
       .lean(),
     Post.find({
       status: 'published',
+      isDeleted: false,
       publishedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
       _id: { $ne: post._id },
     })
       .sort({ views: -1, publishedAt: -1 })
       .limit(3)
       .lean(),
-    Post.find({ status: 'published', _id: { $ne: post._id } })
+    Post.find({ status: 'published', isDeleted: false, _id: { $ne: post._id } })
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(3)
       .lean(),
@@ -82,6 +84,7 @@ export async function getPostBySlug(slug, previewToken = null) {
   const neighbors = await Promise.all([
     Post.findOne({
       status: 'published',
+      isDeleted: false,
       category: post.category,
       _id: { $ne: post._id },
       publishedAt: { $lt: publishedAt },
@@ -90,6 +93,7 @@ export async function getPostBySlug(slug, previewToken = null) {
       .lean(),
     Post.findOne({
       status: 'published',
+      isDeleted: false,
       category: post.category,
       _id: { $ne: post._id },
       publishedAt: { $gt: publishedAt },

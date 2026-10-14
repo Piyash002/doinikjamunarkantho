@@ -13,20 +13,33 @@ export async function getAdminCategories() {
     .populate('parent', 'name_bn name_en slug')
     .lean();
 
-  // Aggregate post count per category
-  const postCounts = await Post.aggregate([
-    { $match: { isDeleted: false } },
-    { $group: { _id: '$category', count: { $sum: 1 } } },
+  // Aggregate post count per category and subcategory
+  const [postCounts, subPostCounts] = await Promise.all([
+    Post.aggregate([
+      { $match: { isDeleted: false } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+    ]),
+    Post.aggregate([
+      { $match: { isDeleted: false, subCategory: { $exists: true, $ne: '' } } },
+      { $group: { _id: '$subCategory', count: { $sum: 1 } } },
+    ]),
   ]);
 
   const countMap = new Map<string, number>();
   postCounts.forEach((item) => {
-    countMap.set(item._id, item.count);
+    if (item._id) countMap.set(String(item._id), item.count);
+  });
+
+  const subCountMap = new Map<string, number>();
+  subPostCounts.forEach((item) => {
+    if (item._id) subCountMap.set(String(item._id), item.count);
   });
 
   return categories.map((cat: any) => ({
     ...cat,
-    postCount: countMap.get(cat.slug) || countMap.get(cat.name_bn) || 0,
+    postCount: cat.parent
+      ? (subCountMap.get(cat.name_bn) || subCountMap.get(cat.slug) || countMap.get(cat.slug) || countMap.get(cat.name_bn) || 0)
+      : (countMap.get(cat.slug) || countMap.get(cat.name_bn) || 0),
   }));
 }
 
@@ -106,14 +119,25 @@ export async function deleteAdminCategory(id: string, session: AdminUserSession)
   const category = await Category.findById(id);
   if (!category) throw new Error('Category not found.');
 
-  // Check if posts exist in this category
+  // Check if posts exist in this category or subcategory
   const usedCount = await Post.countDocuments({
     isDeleted: false,
-    $or: [{ category: category.slug }, { category: category.name_bn }],
+    $or: [
+      { category: category.slug },
+      { category: category.name_bn },
+      { subCategory: category.name_bn },
+      { subCategory: category.slug },
+    ],
   });
 
   if (usedCount > 0) {
     throw new Error(`Cannot delete category: it is used by ${usedCount} active articles. Please reassign those articles first.`);
+  }
+
+  // Check if any child subcategories exist under this category
+  const childSubCount = await Category.countDocuments({ parent: id });
+  if (childSubCount > 0) {
+    throw new Error(`Cannot delete this primary category: it has ${childSubCount} subcategories attached. Please delete or reassign them first.`);
   }
 
   await Category.findByIdAndDelete(id);

@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   FolderTree,
+  Folder,
   Tag,
   Users2,
   Image as ImageIcon,
@@ -81,6 +82,12 @@ export function AdminSidebar({
           label: 'Categories',
           href: '/admin/categories',
           icon: <FolderTree className="w-5 h-5 shrink-0" />,
+          allowedRoles: ['admin', 'editor'],
+        },
+        {
+          label: 'Sub Categories',
+          href: '/admin/subcategories',
+          icon: <Folder className="w-5 h-5 shrink-0" />,
           allowedRoles: ['admin', 'editor'],
         },
         {

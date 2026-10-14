@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import ArticleSiteHeader from '@/src/components/site/ArticleSiteHeader';
 import { connectToDatabase } from '@/src/lib/db';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
+import { getNavCategoriesTree } from '@/src/services/news';
 import AdSlot from '@/src/models/AdSlot';
 import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
@@ -270,7 +271,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       .limit(5)
       .lean(),
     Settings.findOne({}).lean(),
-    Category.find({ isActive: true, showInNav: true }).sort({ order: 1 }).lean(),
+    getNavCategoriesTree().catch(() => []),
     AdSlot.findOne({ position: 'header-below', isActive: true }).lean(),
     AdSlot.findOne({ position: 'sidebar', isActive: true }).lean(),
     AdSlot.findOne({ position: 'between-sections', isActive: true }).lean(),
@@ -294,7 +295,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       {/* Site Header */}
       <ArticleSiteHeader
         activeSlug={canonicalSlug}
-        categories={navCategories.map((c) => ({ name_bn: c.name_bn, slug: c.slug }))}
+        categories={navCategories || []}
         logoUrl={logoUrl}
         siteName={siteName}
         trendingTopics={trendingTopics || []}

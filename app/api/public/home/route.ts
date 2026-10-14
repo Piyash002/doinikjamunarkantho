@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
 
     const query: Record<string, unknown> = {
       status: "published",
+      isDeleted: false,
     };
 
     if (category) {

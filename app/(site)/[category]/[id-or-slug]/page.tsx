@@ -14,6 +14,7 @@ import Category from "@/src/models/Category";
 import Settings from "@/src/models/Settings";
 import { getPostBySlug } from "@/src/services/getPostBySlug";
 import { getPublicTrendingTopics } from "@/src/services/adminTagService";
+import { getNavCategoriesTree } from "@/src/services/news";
 
 export const revalidate = 60;
 
@@ -274,7 +275,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   await connectToDatabase();
   const [settings, categories, stickyAd, trendingTopics] = await Promise.all([
     Settings.findOne({}).sort({ createdAt: -1 }).lean(),
-    Category.find({ isActive: true, showInNav: true }).sort({ order: 1 }).select({ name_bn: 1, slug: 1 }).lean(),
+    getNavCategoriesTree().catch(() => []),
     AdSlot.findOne({ position: "sticky-bottom", isActive: true, imageUrl: { $ne: "" } }).lean(),
     getPublicTrendingTopics().catch(() => []),
   ]);
@@ -331,7 +332,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   return (
     <main className="portal article-portal">
       <ArticleSiteHeader
-        categories={categories.map((item) => ({ name_bn: item.name_bn, slug: item.slug }))}
+        categories={categories || []}
         logoUrl={settings?.logo?.url || undefined}
         siteName={siteName}
         trendingTopics={trendingTopics || []}

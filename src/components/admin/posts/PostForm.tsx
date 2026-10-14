@@ -342,6 +342,17 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
   const selectedDistrictObj = districtOptions.find((d) => d.name === district);
   const upazilaOptions = selectedDistrictObj ? selectedDistrictObj.upazilas : [];
 
+  // Category & Subcategory cascading lists
+  const primaryCategoriesList = availableCategories.filter((c) => !c.parent);
+  const selectedCategoryDoc = availableCategories.find(
+    (c) => c.slug === category || c.name_bn === category || String(c._id) === category
+  );
+  const categorySubCategories = availableCategories.filter((c) => {
+    if (!c.parent || !selectedCategoryDoc) return false;
+    const parentId = typeof c.parent === 'object' ? c.parent._id : c.parent;
+    return String(parentId) === String(selectedCategoryDoc._id);
+  });
+
   return (
     <div className="flex flex-col gap-6 pb-20 sm:pb-8">
       {/* Page Header with Save status & Revisions trigger */}
@@ -569,12 +580,21 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               Organization
             </h3>
 
-            <FormField label="Primary Category" required>
+            <FormField label="Primary Category (মূল ক্যাটাগরি)" required>
               <Select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSubCategory('');
+                }}
               >
-                {availableCategories.length > 0 ? (
+                {primaryCategoriesList.length > 0 ? (
+                  primaryCategoriesList.map((c) => (
+                    <option key={c._id || c.slug} value={c.slug || c.name_bn}>
+                      {c.name_bn} ({c.name_en})
+                    </option>
+                  ))
+                ) : availableCategories.length > 0 ? (
                   availableCategories.map((c) => (
                     <option key={c._id || c.slug} value={c.slug || c.name_bn}>
                       {c.name_bn} ({c.name_en})
@@ -598,12 +618,45 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               </Select>
             </FormField>
 
-            <FormField label="Sub-Category (Optional)">
-              <Input
-                value={subCategory}
-                onChange={(e) => setSubCategory(e.target.value)}
-                placeholder="e.g. ক্রিকেট, ফুটবল, নির্বাচন..."
-              />
+            <FormField
+              label="Sub-Category (সাব-ক্যাটাগরি)"
+              hint={
+                selectedCategoryDoc
+                  ? `মূল ক্যাটাগরি: ${selectedCategoryDoc.name_bn} (${selectedCategoryDoc.name_en})`
+                  : undefined
+              }
+            >
+              {categorySubCategories.length > 0 ? (
+                <div className="flex flex-col gap-2">
+                  <Select
+                    value={subCategory}
+                    onChange={(e) => setSubCategory(e.target.value)}
+                  >
+                    <option value="">-- সাব-ক্যাটাগরি নির্বাচন করুন (ঐচ্ছিক) --</option>
+                    {categorySubCategories.map((sc) => (
+                      <option key={sc._id || sc.slug} value={sc.name_bn}>
+                        {sc.name_bn} ({sc.name_en})
+                      </option>
+                    ))}
+                    <option value="__custom__">+ অন্য সাব-ক্যাটাগরি লিখুন...</option>
+                  </Select>
+
+                  {((subCategory && !categorySubCategories.some((sc) => sc.name_bn === subCategory)) ||
+                    subCategory === '__custom__') && (
+                    <Input
+                      value={subCategory === '__custom__' ? '' : subCategory}
+                      onChange={(e) => setSubCategory(e.target.value)}
+                      placeholder="কাস্টম সাব-ক্যাটাগরি লিখুন..."
+                    />
+                  )}
+                </div>
+              ) : (
+                <Input
+                  value={subCategory}
+                  onChange={(e) => setSubCategory(e.target.value)}
+                  placeholder="e.g. ক্রিকেট, ফুটবল, নির্বাচন..."
+                />
+              )}
             </FormField>
 
             {/* Trending Topic Selector */}

@@ -167,13 +167,49 @@ export default function PostsManager() {
     if (!confirmDeleteId) return;
     try {
       setIsActionLoading(true);
+
+      if (confirmDeleteId === 'bulk-delete') {
+        const res = await fetch('/api/admin/posts/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: selectedIds, action: 'delete' }),
+        });
+        const resData = await res.json();
+        if (!res.ok) throw new Error(resData.error || 'Bulk delete failed.');
+        setSelectedIds([]);
+        mutate();
+        toastSuccess(`Permanently deleted ${resData.data?.modifiedCount || selectedIds.length} articles!`);
+        setConfirmDeleteId(null);
+        return;
+      }
+
+      if (confirmDeleteId === 'empty-trash') {
+        const trashIds = posts.map((p: any) => p._id);
+        if (trashIds.length === 0) return;
+        const res = await fetch('/api/admin/posts/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: trashIds, action: 'delete' }),
+        });
+        const resData = await res.json();
+        if (!res.ok) throw new Error(resData.error || 'Empty trash failed.');
+        setSelectedIds([]);
+        mutate();
+        toastSuccess('Trash emptied successfully!');
+        setConfirmDeleteId(null);
+        return;
+      }
+
       const url = isPermanentDelete
         ? `/api/admin/posts/${confirmDeleteId}/permanent`
         : `/api/admin/posts/${confirmDeleteId}`;
       const method = 'DELETE';
 
       const res = await fetch(url, { method });
-      if (!res.ok) throw new Error('Failed to delete article.');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to delete article.');
+      }
 
       mutate();
       toastSuccess(isPermanentDelete ? 'Permanently deleted article.' : 'Moved article to trash.');
@@ -293,23 +329,49 @@ export default function PostsManager() {
       align: 'right',
       render: (post) => (
         <div className="flex items-center justify-end gap-1.5">
-          <Link
-            href={`/admin/posts/${post._id}/edit`}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-[#1b7d95] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            title="Edit Article"
-          >
-            <Edit className="w-4 h-4" />
-          </Link>
+          {currentStatus === 'trashed' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => handleRestore(post._id)}
+                className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                title="Restore Article (পুনরুদ্ধার করুন)"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPermanentDelete(true);
+                  setConfirmDeleteId(post._id);
+                }}
+                className="p-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                title="Delete Permanently (স্থায়ীভাবে মুছুন)"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href={`/admin/posts/${post._id}/edit`}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-[#1b7d95] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title="Edit Article"
+              >
+                <Edit className="w-4 h-4" />
+              </Link>
 
-          {post.status === 'published' && (
-            <Link
-              href={`/${encodeURIComponent(post.category || 'general')}/${encodeURIComponent(post.slug)}`}
-              target="_blank"
-              className="p-1.5 rounded-lg text-slate-500 hover:text-sky-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title="View on Public Site"
-            >
-              <ExternalLink className="w-4 h-4" />
-            </Link>
+              {post.status === 'published' && (
+                <Link
+                  href={`/${encodeURIComponent(post.category || 'general')}/${encodeURIComponent(post.slug)}`}
+                  target="_blank"
+                  className="p-1.5 rounded-lg text-slate-500 hover:text-sky-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  title="View on Public Site"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Link>
+              )}
+            </>
           )}
 
           <Dropdown
@@ -436,35 +498,48 @@ export default function PostsManager() {
                   <MoreVertical className="w-5 h-5" />
                 </button>
               }
-              items={[
-                {
-                  label: 'Edit',
-                  icon: <Edit className="w-4 h-4" />,
-                  onClick: () => router.push(`/admin/posts/${post._id}/edit`),
-                },
-                {
-                  label: 'Duplicate',
-                  icon: <Copy className="w-4 h-4" />,
-                  onClick: () => handleDuplicate(post._id),
-                },
-                {
-                  label: post.status === 'published' ? 'Set as Draft' : 'Publish',
-                  icon: <CheckCircle className="w-4 h-4" />,
-                  onClick: () => handleTogglePublish(post),
-                },
+              items={
                 currentStatus === 'trashed'
-                  ? {
-                      label: 'Restore',
-                      icon: <RotateCcw className="w-4 h-4" />,
-                      onClick: () => handleRestore(post._id),
-                    }
-                  : {
-                      label: 'Trash',
-                      icon: <Trash2 className="w-4 h-4 text-rose-500" />,
-                      danger: true,
-                      onClick: () => handleTrash(post._id),
-                    },
-              ]}
+                  ? [
+                      {
+                        label: 'Restore (পুনরুদ্ধার)',
+                        icon: <RotateCcw className="w-4 h-4 text-emerald-600" />,
+                        onClick: () => handleRestore(post._id),
+                      },
+                      {
+                        label: 'Delete Permanently (স্থায়ীভাবে মুছুন)',
+                        icon: <Trash2 className="w-4 h-4 text-rose-600" />,
+                        danger: true,
+                        onClick: () => {
+                          setIsPermanentDelete(true);
+                          setConfirmDeleteId(post._id);
+                        },
+                      },
+                    ]
+                  : [
+                      {
+                        label: 'Edit',
+                        icon: <Edit className="w-4 h-4" />,
+                        onClick: () => router.push(`/admin/posts/${post._id}/edit`),
+                      },
+                      {
+                        label: 'Duplicate',
+                        icon: <Copy className="w-4 h-4" />,
+                        onClick: () => handleDuplicate(post._id),
+                      },
+                      {
+                        label: post.status === 'published' ? 'Set as Draft' : 'Publish',
+                        icon: <CheckCircle className="w-4 h-4" />,
+                        onClick: () => handleTogglePublish(post),
+                      },
+                      {
+                        label: 'Move to Trash',
+                        icon: <Trash2 className="w-4 h-4 text-rose-500" />,
+                        danger: true,
+                        onClick: () => handleTrash(post._id),
+                      },
+                    ]
+              }
             />
           </div>
         </div>
@@ -479,11 +554,26 @@ export default function PostsManager() {
         title="Articles & News"
         description="Publish, manage drafts, review schedules and organize news stories."
         actions={
-          <Link href="/admin/posts/new">
-            <Button variant="primary" size="md" leftIcon={<Plus className="w-4 h-4" />}>
-              Write Article
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            {currentStatus === 'trashed' && (Number(meta?.counts?.trashed) > 0 || posts.length > 0) && (
+              <Button
+                variant="danger"
+                size="md"
+                leftIcon={<Trash2 className="w-4 h-4" />}
+                onClick={() => {
+                  setIsPermanentDelete(true);
+                  setConfirmDeleteId('empty-trash');
+                }}
+              >
+                Empty Trash
+              </Button>
+            )}
+            <Link href="/admin/posts/new">
+              <Button variant="primary" size="md" leftIcon={<Plus className="w-4 h-4" />}>
+                Write Article
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -577,17 +667,39 @@ export default function PostsManager() {
         }}
         renderMobileCard={renderMobileCard}
         bulkActions={
-          <>
-            <Button variant="secondary" size="sm" onClick={() => executeBulk('publish')}>
-              Publish
-            </Button>
-            <Button variant="secondary" size="sm" onClick={() => executeBulk('unpublish')}>
-              Set Draft
-            </Button>
-            <Button variant="danger" size="sm" onClick={() => executeBulk('trash')}>
-              Trash
-            </Button>
-          </>
+          currentStatus === 'trashed' ? (
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => executeBulk('restore')}
+              >
+                Restore Selected ({selectedIds.length})
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => {
+                  setIsPermanentDelete(true);
+                  setConfirmDeleteId('bulk-delete');
+                }}
+              >
+                Delete Permanently ({selectedIds.length})
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" size="sm" onClick={() => executeBulk('publish')}>
+                Publish
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => executeBulk('unpublish')}>
+                Set Draft
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => executeBulk('trash')}>
+                Move to Trash
+              </Button>
+            </>
+          )
         }
       />
 
@@ -606,13 +718,31 @@ export default function PostsManager() {
         isOpen={Boolean(confirmDeleteId)}
         onClose={() => setConfirmDeleteId(null)}
         onConfirm={handleConfirmDelete}
-        title={isPermanentDelete ? 'Delete Permanently?' : 'Move to Trash?'}
+        title={
+          confirmDeleteId === 'empty-trash'
+            ? 'Empty Entire Trash?'
+            : confirmDeleteId === 'bulk-delete'
+            ? `Permanently Delete ${selectedIds.length} Articles?`
+            : isPermanentDelete
+            ? 'Delete Permanently?'
+            : 'Move to Trash?'
+        }
         message={
-          isPermanentDelete
+          confirmDeleteId === 'empty-trash'
+            ? 'This will permanently remove ALL articles currently in the Trash. This action CANNOT be undone.'
+            : confirmDeleteId === 'bulk-delete'
+            ? `This will permanently delete ${selectedIds.length} selected articles from the database. This action CANNOT be undone.`
+            : isPermanentDelete
             ? 'This action CANNOT be undone. The article and its revision history will be permanently deleted.'
             : 'You can restore this article from the Trash tab at any time.'
         }
-        confirmLabel={isPermanentDelete ? 'Delete Permanently' : 'Move to Trash'}
+        confirmLabel={
+          confirmDeleteId === 'empty-trash'
+            ? 'Empty Trash'
+            : isPermanentDelete
+            ? 'Delete Permanently'
+            : 'Move to Trash'
+        }
         isLoading={isActionLoading}
       />
     </div>

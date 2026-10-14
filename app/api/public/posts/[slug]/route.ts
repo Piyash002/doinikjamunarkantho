@@ -13,7 +13,7 @@ export async function GET(
     const { slug } = await context.params;
     await connectToDatabase();
 
-    const post = await Post.findOne({ slug, status: 'published' }).lean();
+    const post = await Post.findOne({ slug, status: 'published', isDeleted: false }).lean();
 
     if (!post) {
       return NextResponse.json({ error: 'Post not found.' }, { status: 404 });
