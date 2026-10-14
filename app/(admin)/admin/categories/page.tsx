@@ -38,7 +38,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { PageHeader } from '@/src/components/admin/ui/PageHeader';
 import { Button } from '@/src/components/admin/ui/Button';
 import { Modal } from '@/src/components/admin/ui/Modal';
-import { generateBanglaSafeSlug, slugify } from '@/src/lib/slug';
+import { generateBanglaSafeSlug } from '@/src/lib/slug';
 import { Input } from '@/src/components/admin/ui/Input';
 import { Select } from '@/src/components/admin/ui/Select';
 import { Switch } from '@/src/components/admin/ui/Switch';
