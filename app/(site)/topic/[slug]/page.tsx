@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import ArticleSiteHeader from '@/src/components/site/ArticleSiteHeader';
 import { connectToDatabase } from '@/src/lib/db';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
+import { getNavCategories } from '@/src/services/news';
 import AdSlot from '@/src/models/AdSlot';
 import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
@@ -157,7 +158,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
       .limit(8)
       .lean(),
     Settings.findOne({}).lean(),
-    Category.find({ isActive: true, showInNav: true }).sort({ order: 1 }).lean(),
+    getNavCategories().catch(() => []),
     AdSlot.findOne({ position: 'header-below', isActive: true }).lean(),
     AdSlot.findOne({ position: 'sidebar', isActive: true }).lean(),
     AdSlot.findOne({ position: 'between-sections', isActive: true }).lean(),
@@ -183,7 +184,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
     <div className="portal article-portal bg-[#f8fafc] dark:bg-[#0b131b] text-slate-900 dark:text-slate-100 min-h-screen">
       {/* Site Header */}
       <ArticleSiteHeader
-        categories={navCategories.map((c) => ({ name_bn: c.name_bn, slug: c.slug }))}
+        categories={navCategories || []}
         logoUrl={logoUrl}
         siteName={siteName}
         trendingTopics={trendingTopics || []}

@@ -73,48 +73,48 @@ export async function getHomeLayoutPayload() {
   };
 }
 
-export async function getNavCategoriesTree() {
+export async function getNavCategories() {
   await connectToDatabase();
-  const all = await Category.find({ isActive: true, showInNav: true })
+  const categories = await Category.find({
+    isActive: true,
+    showInNav: { $ne: false },
+    parent: null,
+  })
     .sort({ order: 1 })
-    .populate('parent', 'name_bn name_en slug')
+    .select('_id name_bn name_en slug order')
     .lean();
 
-  const primary = all.filter((c) => !c.parent);
-  const subs = all.filter((c) => Boolean(c.parent));
+  return categories.map((cat) => ({
+    _id: String(cat._id),
+    name_bn: cat.name_bn,
+    name_en: cat.name_en,
+    slug: cat.slug,
+    order: cat.order,
+  }));
+}
 
-  const DEFAULT_SUBCATEGORIES_MAP = {
-    national: ['চট্টগ্রামের খবর', 'জাতীয় সংসদ', 'রাজধানীর খবর', 'আইন ও বিচার'],
-    politics: ['আওয়ামী লীগ', 'বিএনপি', 'জাতীয় পার্টি', 'নির্বাচন', 'অন্যান্য দল'],
-    economy: ['ব্যাংক ও বিমা', 'শেয়ারবাজার', 'বাণিজ্য', 'বাজেট', 'শিল্প ও কৃষি'],
-    international: ['ভারত', 'মধ্যপ্রাচ্য', 'আমেরিকা', 'ইউরোপ', 'চীন ও এশিয়া'],
-    sports: ['ক্রিকেট', 'ফুটবল', 'টেনিস', 'বিশ্বকাপ', 'অন্যান্য খেলা'],
-    entertainment: ['বলিউড', 'ঢালিউড', 'হলিউড', 'নাটক ও ওটিটি', 'গান'],
-    sarades: ['ঢাকা বিভাগ', 'চট্টগ্রাম বিভাগ', 'রাজশাহী বিভাগ', 'খুলনা বিভাগ', 'সিলেট বিভাগ', 'বরিশাল বিভাগ', 'রংপুর বিভাগ', 'ময়মনসিংহ বিভাগ'],
-    technology: ['মোবাইল', 'ইন্টারনেট', 'কৃত্রিম বুদ্ধিমত্তা', 'বিজ্ঞান ও মহাকাশ'],
-    health: ['পুষ্টি ও খাদ্য', 'রোগ প্রতিরোধ', 'চিকিৎসা সেবা', 'মানসিক স্বাস্থ্য'],
-  };
+export async function getSubCategories(parentId) {
+  if (!parentId) return [];
+  await connectToDatabase();
+  const subs = await Category.find({
+    isActive: true,
+    parent: parentId,
+  })
+    .sort({ order: 1 })
+    .select('_id name_bn name_en slug order')
+    .lean();
 
-  return primary.map((cat) => {
-    const catId = String(cat._id);
-    const children = subs.filter((sc) => {
-      const pId = typeof sc.parent === 'object' ? String(sc.parent._id) : String(sc.parent);
-      return pId === catId;
-    });
+  return subs.map((sc) => ({
+    _id: String(sc._id),
+    name_bn: sc.name_bn,
+    name_en: sc.name_en,
+    slug: sc.slug,
+    order: sc.order,
+  }));
+}
 
-    const subList =
-      children.length > 0
-        ? children.map((ch) => ({ name_bn: ch.name_bn, name_en: ch.name_en, slug: ch.slug }))
-        : (DEFAULT_SUBCATEGORIES_MAP[cat.slug] || []).map((name) => ({ name_bn: name, name_en: name, slug: name }));
-
-    return {
-      _id: catId,
-      name_bn: cat.name_bn,
-      name_en: cat.name_en,
-      slug: cat.slug,
-      subCategories: subList,
-    };
-  });
+export async function getNavCategoriesTree() {
+  return getNavCategories();
 }
 
 

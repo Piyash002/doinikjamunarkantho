@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import ArticleSiteHeader from '@/src/components/site/ArticleSiteHeader';
 import { connectToDatabase } from '@/src/lib/db';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
-import { getNavCategoriesTree } from '@/src/services/news';
+import { getNavCategories, getSubCategories } from '@/src/services/news';
 import AdSlot from '@/src/models/AdSlot';
 import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
@@ -94,25 +94,82 @@ function routeFor(categorySlug: string, postSlug: string): string {
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?auto=format&fit=crop&w=1200&q=80';
 
-// Contextual subcategory fallbacks when none are yet in the database
-const DEFAULT_SUBCATEGORIES_MAP: Record<string, string[]> = {
-  national: ['চট্টগ্রামের খবর', 'জাতীয় সংসদ', 'রাজধানীর খবর', 'আইন ও বিচার'],
-  politics: ['আওয়ামী লীগ', 'বিএনপি', 'জাতীয় পার্টি', 'নির্বাচন', 'অন্যান্য দল'],
-  economy: ['ব্যাংক ও বিমা', 'শেয়ারবাজার', 'বাণিজ্য', 'বাজেট', 'শিল্প ও কৃষি'],
-  international: ['ভারত', 'মধ্যপ্রাচ্য', 'আমেরিকা', 'ইউরোপ', 'চীন ও এশিয়া'],
-  sports: ['ক্রিকেট', 'ফুটবল', 'টেনিস', 'বিশ্বকাপ', 'অন্যান্য খেলা'],
-  entertainment: ['বলিউড', 'ঢালিউড', 'হলিউড', 'নাটক ও ওটিটি', 'গান'],
-  sarades: ['ঢাকা বিভাগ', 'চট্টগ্রাম বিভাগ', 'রাজশাহী বিভাগ', 'খুলনা বিভাগ', 'সিলেট বিভাগ'],
-  technology: ['মোবাইল', 'ইন্টারনেট', 'কৃত্রিম বুদ্ধিমত্তা', 'বিজ্ঞান ও মহাকাশ'],
-  health: ['পুষ্টি ও খাদ্য', 'রোগ প্রতিরোধ', 'চিকিৎসা সেবা', 'মানসিক স্বাস্থ্য'],
+type SubCategoryInfo = {
+  name_bn: string;
+  slug: string;
+  name_en?: string;
 };
 
-export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
+// Contextual subcategory fallbacks with meaningful slugs
+const DEFAULT_SUBCATEGORIES_MAP: Record<string, SubCategoryInfo[]> = {
+  national: [
+    { name_bn: 'জাতীয় সংসদ', slug: 'parliament', name_en: 'Parliament' },
+    { name_bn: 'রাজধানীর খবর', slug: 'capital-news', name_en: 'Capital News' },
+    { name_bn: 'আইন ও বিচার', slug: 'law-justice', name_en: 'Law & Justice' },
+    { name_bn: 'চট্টগ্রামের খবর', slug: 'chattogram-news', name_en: 'Chattogram' },
+  ],
+  politics: [
+    { name_bn: 'বিএনপি', slug: 'bnp', name_en: 'BNP' },
+    { name_bn: 'আওয়ামী লীগ', slug: 'awami-league', name_en: 'Awami League' },
+    { name_bn: 'নির্বাচন', slug: 'election', name_en: 'Election' },
+    { name_bn: 'জাতীয় পার্টি', slug: 'jatiya-party', name_en: 'Jatiya Party' },
+  ],
+  economy: [
+    { name_bn: 'ব্যাংক ও বিমা', slug: 'bank-insurance', name_en: 'Bank & Insurance' },
+    { name_bn: 'শেয়ারবাজার', slug: 'stock-market', name_en: 'Stock Market' },
+    { name_bn: 'বাণিজ্য', slug: 'commerce', name_en: 'Commerce' },
+    { name_bn: 'বাজেট', slug: 'budget', name_en: 'Budget' },
+    { name_bn: 'শিল্প ও কৃষি', slug: 'industry-agriculture', name_en: 'Industry & Agriculture' },
+  ],
+  international: [
+    { name_bn: 'ভারত', slug: 'india', name_en: 'India' },
+    { name_bn: 'মধ্যপ্রাচ্য', slug: 'middle-east', name_en: 'Middle East' },
+    { name_bn: 'আমেরিকা', slug: 'usa', name_en: 'USA' },
+    { name_bn: 'ইউরোপ', slug: 'europe', name_en: 'Europe' },
+    { name_bn: 'চীন ও এশিয়া', slug: 'china-asia', name_en: 'China & Asia' },
+  ],
+  sports: [
+    { name_bn: 'ক্রিকেট', slug: 'cricket', name_en: 'Cricket' },
+    { name_bn: 'ফুটবল', slug: 'football', name_en: 'Football' },
+    { name_bn: 'টেনিস', slug: 'tennis', name_en: 'Tennis' },
+    { name_bn: 'বিশ্বকাপ', slug: 'world-cup', name_en: 'World Cup' },
+  ],
+  entertainment: [
+    { name_bn: 'ঢালিউড', slug: 'dhallywood', name_en: 'Dhallywood' },
+    { name_bn: 'বলিউড', slug: 'bollywood', name_en: 'Bollywood' },
+    { name_bn: 'হলিউড', slug: 'hollywood', name_en: 'Hollywood' },
+    { name_bn: 'নাটক ও ওটিটি', slug: 'drama-ott', name_en: 'Drama & OTT' },
+    { name_bn: 'গান', slug: 'music', name_en: 'Music' },
+  ],
+  sarades: [
+    { name_bn: 'ঢাকা বিভাগ', slug: 'dhaka-division', name_en: 'Dhaka Division' },
+    { name_bn: 'চট্টগ্রাম বিভাগ', slug: 'chattogram-division', name_en: 'Chattogram Division' },
+    { name_bn: 'রাজশাহী বিভাগ', slug: 'rajshahi-division', name_en: 'Rajshahi Division' },
+    { name_bn: 'খুলনা বিভাগ', slug: 'khulna-division', name_en: 'Khulna Division' },
+    { name_bn: 'সিলেট বিভাগ', slug: 'sylhet-division', name_en: 'Sylhet Division' },
+  ],
+  technology: [
+    { name_bn: 'মোবাইল', slug: 'mobile', name_en: 'Mobile' },
+    { name_bn: 'ইন্টারনেট', slug: 'internet', name_en: 'Internet' },
+    { name_bn: 'কৃত্রিম বুদ্ধিমত্তা', slug: 'ai', name_en: 'AI' },
+    { name_bn: 'বিজ্ঞান ও মহাকাশ', slug: 'science', name_en: 'Science' },
+  ],
+  health: [
+    { name_bn: 'পুষ্টি ও খাদ্য', slug: 'nutrition', name_en: 'Nutrition' },
+    { name_bn: 'রোগ প্রতিরোধ', slug: 'prevention', name_en: 'Prevention' },
+    { name_bn: 'চিকিৎসা সেবা', slug: 'healthcare', name_en: 'Healthcare' },
+    { name_bn: 'মানসিক স্বাস্থ্য', slug: 'mental-health', name_en: 'Mental Health' },
+  ],
+};
+
+export async function generateMetadata({ params, searchParams }: CategoryPageProps): Promise<Metadata> {
   const { category: rawCategory } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const slug = decodeURIComponent(rawCategory);
+  const selectedSub = resolvedSearchParams?.sub ? decodeURIComponent(resolvedSearchParams.sub) : '';
 
   await connectToDatabase();
-  const [cat, settings] = await Promise.all([
+  const [cat, settings, subCat] = await Promise.all([
     Category.findOne({
       isActive: true,
       $or: [
@@ -123,17 +180,32 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       ],
     }).lean(),
     Settings.findOne({}).lean(),
+    selectedSub
+      ? Category.findOne({
+          isActive: true,
+          $or: [
+            { slug: selectedSub },
+            { slug: selectedSub.toLowerCase() },
+            { name_en: new RegExp(`^${selectedSub}$`, 'i') },
+            { name_bn: selectedSub },
+          ],
+        }).lean()
+      : Promise.resolve(null),
   ]);
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
   const categoryName = cat?.name_bn || (slug === 'all' || slug === 'latest' ? 'সর্বশেষ' : slug);
+  const subCategoryName = subCat?.name_bn || selectedSub;
+  const fullTitle = subCategoryName
+    ? `${subCategoryName} - ${categoryName} খবর | ${siteName}`
+    : `${categoryName} খবর | ${siteName}`;
 
   return {
-    title: `${categoryName} খবর - ${siteName}`,
-    description: `${categoryName} বিভাগের সর্বশেষ সংবাদ, বিশ্লেষণ ও ভিডিও প্রতিবেদন।`,
+    title: fullTitle,
+    description: `${subCategoryName ? `${subCategoryName}, ` : ''}${categoryName} বিভাগের সর্বশেষ সংবাদ, বিশ্লেষণ ও ভিডিও প্রতিবেদন।`,
     openGraph: {
-      title: `${categoryName} খবর - ${siteName}`,
-      description: `${categoryName} বিভাগের সর্বশেষ সংবাদ ও প্রতিবেদন।`,
+      title: fullTitle,
+      description: `${subCategoryName ? `${subCategoryName}, ` : ''}${categoryName} বিভাগের সর্বশেষ সংবাদ ও প্রতিবেদন।`,
       type: 'website',
     },
   };
@@ -189,25 +261,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const categoryName = isAllOrLatest ? 'সর্বশেষ' : categoryDoc?.name_bn || currentCategorySlug;
   const canonicalSlug = isAllOrLatest ? 'latest' : categoryDoc?.slug || currentCategorySlug;
 
-  // 2. Fetch Subcategories
-  let subCategoriesList: string[] = [];
-  if (categoryDoc?._id) {
-    const dbSubCats = await Category.find({
-      parent: categoryDoc._id,
-      isActive: true,
-    })
-      .sort({ order: 1 })
-      .lean();
+  // 2. Fetch Subcategories (Top-level parent category -> children)
+  const subCategoriesList = categoryDoc?._id
+    ? await getSubCategories(categoryDoc._id).catch(() => [])
+    : [];
 
-    if (dbSubCats.length > 0) {
-      subCategoriesList = dbSubCats.map((sc) => sc.name_bn);
-    }
-  }
-
-  // Fallback subcategories if none configured in DB
-  if (subCategoriesList.length === 0 && DEFAULT_SUBCATEGORIES_MAP[canonicalSlug]) {
-    subCategoriesList = DEFAULT_SUBCATEGORIES_MAP[canonicalSlug];
-  }
+  // Match active subcategory (by slug, name_bn, or name_en)
+  const activeSubDoc = selectedSub
+    ? subCategoriesList.find(
+        (s: any) =>
+          s.slug.toLowerCase() === selectedSub.toLowerCase() ||
+          s.name_bn === selectedSub ||
+          s.name_en?.toLowerCase() === selectedSub.toLowerCase()
+      ) || null
+    : null;
 
   // 3. Build Post Query
   const postFilter: any = {
@@ -215,32 +282,52 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     isDeleted: { $ne: true },
   };
 
-  if (!isAllOrLatest && categoryDoc) {
-    const matchingIdentifiers = [
-      categoryDoc.slug,
-      categoryDoc.name_bn,
-      categoryDoc.name_en?.toLowerCase(),
-      categoryDoc._id ? String(categoryDoc._id) : '',
-    ].filter(Boolean);
+  const matchingCategoryIdentifiers = !isAllOrLatest && categoryDoc
+    ? [
+        categoryDoc.slug,
+        categoryDoc.name_bn,
+        categoryDoc.name_en?.toLowerCase(),
+        categoryDoc._id ? String(categoryDoc._id) : '',
+      ].filter(Boolean)
+    : [];
 
-    if (selectedSub) {
+  if (selectedSub) {
+    const subIdentifiers = activeSubDoc
+      ? [activeSubDoc.name_bn, activeSubDoc.slug, activeSubDoc.name_en?.toLowerCase(), selectedSub].filter(Boolean)
+      : [selectedSub];
+
+    if (matchingCategoryIdentifiers.length > 0) {
       postFilter.$and = [
         {
           $or: [
-            { category: { $in: matchingIdentifiers } },
-            { subCategory: { $in: matchingIdentifiers } },
+            { category: { $in: matchingCategoryIdentifiers } },
+            { subCategory: { $in: matchingCategoryIdentifiers } },
           ],
         },
-        { subCategory: selectedSub },
+        {
+          $or: [
+            { subCategory: { $in: subIdentifiers } },
+            { category: { $in: subIdentifiers } },
+          ],
+        },
       ];
     } else {
       postFilter.$or = [
-        { category: { $in: matchingIdentifiers } },
-        { subCategory: { $in: matchingIdentifiers } },
+        { subCategory: { $in: subIdentifiers } },
+        { category: { $in: subIdentifiers } },
       ];
     }
-  } else if (selectedSub) {
-    postFilter.subCategory = selectedSub;
+  } else if (matchingCategoryIdentifiers.length > 0) {
+    // Under "সব", include parent category posts AND all its child subcategories' posts
+    const allCategoryIdentifiers = [
+      ...matchingCategoryIdentifiers,
+      ...subCategoriesList.flatMap((s: any) => [s.slug, s.name_bn, s.name_en?.toLowerCase()]),
+    ].filter(Boolean);
+
+    postFilter.$or = [
+      { category: { $in: allCategoryIdentifiers } },
+      { subCategory: { $in: allCategoryIdentifiers } },
+    ];
   }
 
   // 4. Parallel Data Fetching
@@ -271,7 +358,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       .limit(5)
       .lean(),
     Settings.findOne({}).lean(),
-    getNavCategoriesTree().catch(() => []),
+    getNavCategories().catch(() => []),
     AdSlot.findOne({ position: 'header-below', isActive: true }).lean(),
     AdSlot.findOne({ position: 'sidebar', isActive: true }).lean(),
     AdSlot.findOne({ position: 'between-sections', isActive: true }).lean(),
@@ -279,7 +366,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   ]);
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
-  const logoUrl = settings?.logo?.url || '/logo.png';
+  const rawLogo = settings?.logo?.url;
+  const logoUrl = rawLogo && !rawLogo.includes('photo-1529107386315') ? rawLogo : '/logo.png';
   const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   // Split stories into sections:
@@ -358,45 +446,39 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             </span>
           </div>
 
-          {/* Subcategories Horizontal Bar */}
+          {/* Subcategories Horizontal Bar (Chips row) */}
           {subCategoriesList.length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto py-2.5 text-sm scrollbar-none border-b border-slate-100 dark:border-slate-800/60">
+            <div className="flex items-center gap-2 overflow-x-auto py-3 scrollbar-none" role="navigation" aria-label="উপ-বিভাগ">
               <Link
                 href={`/${encodeURIComponent(canonicalSlug)}`}
-                className={`shrink-0 font-medium transition-colors ${
+                className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   !selectedSub
-                    ? 'text-blue-600 dark:text-blue-400 font-bold'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300'
+                    ? 'bg-[#083c4d] text-white font-semibold dark:bg-[#1b7d95] shadow-xs'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200'
                 }`}
               >
                 সব
               </Link>
-              {subCategoriesList.map((subName) => {
-                const isSelected = selectedSub === subName;
+              {subCategoriesList.map((sub: any) => {
+                const isSelected =
+                  Boolean(selectedSub) &&
+                  (selectedSub.toLowerCase() === sub.slug?.toLowerCase() ||
+                    selectedSub === sub.name_bn ||
+                    (sub.name_en && selectedSub.toLowerCase() === sub.name_en.toLowerCase()));
                 return (
-                  <div key={subName} className="flex items-center gap-2 shrink-0">
-                    <span className="text-slate-300 dark:text-slate-700">|</span>
-                    <Link
-                      href={`/${encodeURIComponent(canonicalSlug)}?sub=${encodeURIComponent(subName)}`}
-                      className={`transition-colors whitespace-nowrap ${
-                        isSelected
-                          ? 'text-blue-600 dark:text-blue-400 font-bold border-b-2 border-blue-600 pb-0.5'
-                          : 'text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400'
-                      }`}
-                    >
-                      {subName}
-                    </Link>
-                  </div>
+                  <Link
+                    key={sub._id || sub.slug}
+                    href={`/${encodeURIComponent(canonicalSlug)}?sub=${encodeURIComponent(sub.slug)}`}
+                    className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
+                      isSelected
+                        ? 'bg-[#083c4d] text-white font-semibold dark:bg-[#1b7d95] shadow-xs'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200'
+                    }`}
+                  >
+                    {sub.name_bn}
+                  </Link>
                 );
               })}
-              {selectedSub && (
-                <Link
-                  href={`/${encodeURIComponent(canonicalSlug)}`}
-                  className="ml-auto text-xs text-rose-500 hover:underline shrink-0"
-                >
-                  ফিল্টার মুছুন ✕
-                </Link>
-              )}
             </div>
           )}
         </header>

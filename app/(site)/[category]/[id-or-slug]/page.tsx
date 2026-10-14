@@ -14,7 +14,7 @@ import Category from "@/src/models/Category";
 import Settings from "@/src/models/Settings";
 import { getPostBySlug } from "@/src/services/getPostBySlug";
 import { getPublicTrendingTopics } from "@/src/services/adminTagService";
-import { getNavCategoriesTree } from "@/src/services/news";
+import { getNavCategories } from "@/src/services/news";
 
 export const revalidate = 60;
 
@@ -275,7 +275,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   await connectToDatabase();
   const [settings, categories, stickyAd, trendingTopics] = await Promise.all([
     Settings.findOne({}).sort({ createdAt: -1 }).lean(),
-    getNavCategoriesTree().catch(() => []),
+    getNavCategories().catch(() => []),
     AdSlot.findOne({ position: "sticky-bottom", isActive: true, imageUrl: { $ne: "" } }).lean(),
     getPublicTrendingTopics().catch(() => []),
   ]);

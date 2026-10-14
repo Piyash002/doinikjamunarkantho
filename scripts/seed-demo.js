@@ -128,7 +128,7 @@ export async function seedDemoData() {
   await Settings.create({
     siteName: 'দৈনিক যমুনার কণ্ঠ',
     logo: {
-      url: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&w=800&q=80',
+      url: '/logo.png',
       publicId: 'site-logo',
     },
     trendingKeywords: ['রাজনীতি', 'খেলা', 'অর্থনীতি', 'সারাদেশ'],

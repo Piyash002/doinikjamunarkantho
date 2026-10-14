@@ -59,7 +59,7 @@ export async function createAdminCategory(data: any, session: AdminUserSession) 
     parent: data.parent || null,
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
 
   await logActivity({
     userId: session.id,
@@ -95,7 +95,7 @@ export async function updateAdminCategory(id: string, data: any, session: AdminU
   });
 
   await category.save();
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
 
   await logActivity({
     userId: session.id,
@@ -141,7 +141,7 @@ export async function deleteAdminCategory(id: string, session: AdminUserSession)
   }
 
   await Category.findByIdAndDelete(id);
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
 
   await logActivity({
     userId: session.id,
@@ -170,7 +170,7 @@ export async function reorderAdminCategories(items: { id: string; order: number 
   }));
 
   await Category.bulkWrite(bulkOps);
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
 
   await logActivity({
     userId: session.id,
