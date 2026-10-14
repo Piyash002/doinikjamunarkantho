@@ -30,7 +30,7 @@ function toDisplayCategoryName(category: { name_bn?: string; name_en?: string; s
 }
 
 export default async function HomePage() {
-  let navCategories: string[] = fallbackCategories;
+  let navCategories: Array<string | { name_bn?: string; name_en?: string; slug?: string }> = fallbackCategories;
   let trendingKeywords: string[] = fallbackTrending;
   let featuredPosts: any[] = [];
   let latestPosts: any[] = [];
@@ -54,7 +54,11 @@ export default async function HomePage() {
       'সর্বশেষ',
       ...categoryList
         .filter((category) => category && category.isActive !== false)
-        .map((category) => toDisplayCategoryName(category)),
+        .map((category) => ({
+          name_bn: category.name_bn || category.name_en || category.slug,
+          name_en: category.name_en || category.slug,
+          slug: category.slug,
+        })),
     ];
 
     const settingsTrending = Array.isArray(settings?.trendingKeywords) ? settings.trendingKeywords : [];
@@ -85,13 +89,13 @@ export default async function HomePage() {
   return (
     <HomePageClient
       siteName={siteName}
-      navCategories={navCategories}
+      navCategories={JSON.parse(JSON.stringify(navCategories))}
       trendingKeywords={trendingKeywords}
-      trendingTopics={trendingTopics}
-      featuredPosts={featuredPosts}
-      latestPosts={latestPosts}
-      popularPosts={popularPosts}
-      opinionPosts={opinionPosts}
+      trendingTopics={JSON.parse(JSON.stringify(trendingTopics))}
+      featuredPosts={JSON.parse(JSON.stringify(featuredPosts))}
+      latestPosts={JSON.parse(JSON.stringify(latestPosts))}
+      popularPosts={JSON.parse(JSON.stringify(popularPosts))}
+      opinionPosts={JSON.parse(JSON.stringify(opinionPosts))}
     />
   );
 }

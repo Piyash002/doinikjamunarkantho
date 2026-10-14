@@ -162,16 +162,19 @@ export default function HomePageClient({
 }: HomePageClientProps) {
   const [activeCategory, setActiveCategory] = useState("সর্বশেষ");
   const [activeTab, setActiveTab] = useState("সর্বশেষ");
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    const savedTheme = window.localStorage.getItem("theme-preference");
-    const preferDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return savedTheme ? savedTheme === "dark" : preferDark;
-  });
+  const [isDark, setIsDark] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [nowMs, setNowMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("theme-preference");
+    const preferDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (savedTheme ? savedTheme === "dark" : preferDark) {
+      setIsDark(true);
+    }
+  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setNowMs(new Date().getTime()));
