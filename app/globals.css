@@ -27,9 +27,9 @@
   --page: #edf1f4;
   --surface: #ffffff;
   --surface-soft: #f7f8fa;
-  --ink: #1b2d3a;
-  --muted: #5f6f7f;
-  --line: #d8e0e8;
+  --ink: #0f172a;
+  --muted: #475569;
+  --line: #cbd5e1;
   --navy: #0a2b3a;
   --navy-deep: #072230;
   --teal: #1b7d95;
@@ -125,8 +125,15 @@ html.dark,
   z-index: 30;
   top: 0;
   background: #083c4d;
-  color: #f7fbfc;
+  color: #ffffff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.site-header a,
+.site-header button,
+.site-header .nav-link,
+.site-header .icon-button {
+  color: #ffffff;
 }
 
 .header-inner {
@@ -186,7 +193,7 @@ html.dark,
   gap: 4px;
   border: 0;
   background: transparent;
-  color: #eaf1f4;
+  color: #ffffff !important;
   cursor: pointer;
   font-size: 15.5px;
   font-weight: 600;
@@ -198,14 +205,14 @@ html.dark,
 }
 
 .nav-link:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .nav-link.active {
-  color: #ffffff;
+  color: #ffffff !important;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .nav-link.active::after {
@@ -399,21 +406,21 @@ html.dark,
   gap: 12px;
   padding: 0 max(24px, calc((100% - 1330px) / 2));
   background: #052632;
-  color: #b8cbd1;
+  color: #f1f5f9;
   font-size: 11.5px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .portal[data-theme="dark"] .date-strip {
   background: #031820;
-  color: #8da4ac;
+  color: #cbd5e1;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .date-divider {
   width: 1px;
   height: 12px;
-  background: rgb(255 255 255 / 25%);
+  background: rgb(255 255 255 / 35%);
 }
 
 .date-strip a {
@@ -421,7 +428,8 @@ html.dark,
   align-items: center;
   gap: 6px;
   margin-left: auto;
-  color: #fff;
+  color: #ffffff !important;
+  font-weight: 600;
 }
 
 .date-strip a span {
@@ -2588,10 +2596,53 @@ html[data-theme="dark"] .article-portal {
   color: #4285f4;
 }
 
-.share-print:hover {
-  background: #0a2b3a !important;
-  border-color: #0a2b3a !important;
-  color: #fff !important;
+.article-print-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #156d3b;
+  border-radius: 8px;
+  background: #156d3b;
+  color: #ffffff !important;
+  cursor: pointer;
+  font-family: Arial, var(--font-bengali), sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(21, 109, 59, 0.25);
+  transition: all 180ms ease;
+  user-select: none;
+}
+
+.article-print-action-btn:hover {
+  background: #0e502a !important;
+  border-color: #09381d !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(21, 109, 59, 0.35);
+}
+
+.article-print-action-btn:active {
+  transform: translateY(0);
+}
+
+.article-print-action-btn svg {
+  width: 16px;
+  height: 16px;
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  stroke-width: 2.2;
+}
+
+.article-print-action-btn span {
+  color: #ffffff !important;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.15px;
 }
 
 .article-author-designation {
@@ -3536,26 +3587,33 @@ html[data-theme="dark"] .article-portal {
   }
 }
 
-.article-print-header,
-.article-print-footer {
+.newspaper-print-sheet {
   display: none;
 }
 
 @media print {
-  html, body, .portal, .article-portal, .page-shell, .article-page-shell {
-    background: #fff !important;
-    color: #000 !important;
+  @page {
+    margin: 10mm 15mm;
+    size: auto;
+  }
+
+  html, body, .portal, .article-portal {
+    background: #ffffff !important;
+    color: #000000 !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
+    font-size: 12pt !important;
   }
 
+  /* Hide the entire web interface */
   .article-site-header,
   .site-header,
   header.site-header,
   .article-breadcrumb,
+  .article-page-shell,
   .article-sidebar,
   aside,
   .article-actions,
@@ -3571,147 +3629,320 @@ html[data-theme="dark"] .article-portal {
   .article-tags,
   .article-bottom-lists,
   .article-related,
+  .article-author-profile-box,
   .article-head-divider,
   nav,
-  button {
+  button,
+  #__next-route-announcer__ {
     display: none !important;
   }
 
-  .article-page-shell {
-    width: 100% !important;
-    padding: 0 10mm !important;
-    margin: 0 !important;
-  }
-
-  .article-columns {
+  /* Dedicated Newspaper Print Sheet Display */
+  .newspaper-print-sheet {
     display: block !important;
     width: 100% !important;
-  }
-
-  .article-main {
-    width: 100% !important;
     max-width: 100% !important;
+    margin: 0 auto !important;
     padding: 0 !important;
-    margin: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-sizing: border-box !important;
+    font-family: var(--font-bengali), Arial, sans-serif !important;
   }
 
-  .article-print-header {
-    display: block !important;
-    border-bottom: 2px solid #000;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
+  .newspaper-print-masthead {
+    text-align: center !important;
+    margin-bottom: 6px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .article-print-header .print-brand-title {
-    font-size: 22pt;
-    font-weight: 800;
-    color: #000;
-    line-height: 1.1;
-  }
-
-  .article-print-header .print-brand-meta {
-    font-size: 9pt;
-    color: #555;
-    margin-top: 4px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .article-heading h1 {
-    font-size: 20pt !important;
-    line-height: 1.3 !important;
-    color: #000 !important;
-    margin-bottom: 8px !important;
-  }
-
-  .article-author-meta {
-    margin-bottom: 14px !important;
-    color: #333 !important;
-  }
-
-  .article-author-meta strong {
-    font-size: 11pt !important;
-    color: #000 !important;
-  }
-
-  .article-author-meta p {
-    font-size: 9.5pt !important;
-    color: #555 !important;
-  }
-
-  .article-author-avatar {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
-  .article-featured-figure {
-    margin: 10px 0 16px !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  .article-featured-image {
-    max-width: 100% !important;
-    max-height: 380px !important;
+  .newspaper-print-logo {
+    max-height: 85px !important;
+    max-width: 360px !important;
     object-fit: contain !important;
+    margin: 0 auto !important;
+    display: block !important;
   }
 
-  figcaption {
-    font-size: 9pt !important;
-    color: #555 !important;
-    margin-top: 4px !important;
+  .newspaper-print-brand-fallback {
+    font-size: 26pt !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    text-align: center !important;
+    letter-spacing: -0.5px !important;
   }
 
-  .article-lead {
-    font-size: 13pt !important;
-    font-weight: 600 !important;
-    line-height: 1.6 !important;
-    color: #111 !important;
-    margin-bottom: 12px !important;
+  /* Green Date & Publication Ribbon Strip */
+  .newspaper-print-date-strip {
+    background: #156d3b !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 16px !important;
+    padding: 5px 14px !important;
+    margin: 8px 0 16px !important;
+    font-size: 10pt !important;
+    font-weight: 700 !important;
+    border-radius: 2px !important;
+    border-top: 2px solid #156d3b !important;
+    border-bottom: 2px solid #156d3b !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .article-content {
-    font-size: 11pt !important;
-    line-height: 1.7 !important;
-    color: #111 !important;
-    page-break-inside: auto !important;
-    break-inside: auto !important;
+  .newspaper-print-date-strip span {
+    color: #ffffff !important;
+    font-weight: 700 !important;
   }
 
-  .article-content p {
-    margin-bottom: 12pt !important;
-    orphans: 3 !important;
-    widows: 3 !important;
-    page-break-inside: avoid;
-    break-inside: avoid;
+  .newspaper-print-date-sep {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    opacity: 0.85;
   }
 
-  .article-content h1,
-  .article-content h2,
-  .article-content h3,
-  .article-content h4 {
+  /* Big Bold Headline */
+  .newspaper-print-headline {
+    font-size: 22pt !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    color: #000000 !important;
+    text-align: center !important;
+    margin: 14px 0 18px !important;
+    letter-spacing: -0.2px !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
-    color: #000 !important;
   }
 
-  .article-content img {
+  /* Body Layout with Floated Left Media */
+  .newspaper-print-body {
+    width: 100% !important;
+    font-size: 11pt !important;
+    line-height: 1.75 !important;
+    color: #111111 !important;
+  }
+
+  .newspaper-print-media-box {
+    float: left !important;
+    width: 48% !important;
+    margin-right: 18px !important;
+    margin-bottom: 12px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .newspaper-print-img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 280px !important;
+    object-fit: cover !important;
+    display: block !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 2px !important;
+  }
+
+  .newspaper-print-caption {
+    font-size: 9pt !important;
+    color: #333333 !important;
+    margin: 4px 0 0 !important;
+    line-height: 1.35 !important;
+    font-style: italic !important;
+  }
+
+  .newspaper-print-reporter {
+    margin-top: 8px !important;
+    font-size: 10.5pt !important;
+    line-height: 1.4 !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+  }
+
+  .newspaper-print-lead {
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    margin-bottom: 10pt !important;
+  }
+
+  .newspaper-print-content {
+    font-size: 11pt !important;
+    line-height: 1.75 !important;
+    color: #111111 !important;
+    text-align: justify !important;
+  }
+
+  .newspaper-print-content p {
+    margin-bottom: 10pt !important;
+    orphans: 3 !important;
+    widows: 3 !important;
+  }
+
+  .newspaper-print-content img,
+  .newspaper-print-content figure {
     max-width: 100% !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
-  .article-print-footer {
-    display: block !important;
-    border-top: 1px solid #ccc;
-    padding-top: 8px;
-    margin-top: 24px;
-    font-size: 8.5pt;
-    color: #666;
+  .newspaper-print-clearfix {
+    clear: both !important;
+  }
+
+  /* Editorial & Publisher Footer */
+  .newspaper-print-footer {
+    margin-top: 24px !important;
+    padding-top: 12px !important;
+    text-align: center !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border-top: 1px solid #4b5563 !important;
+  }
+
+  .newspaper-print-footer-rule {
+    display: none !important;
+  }
+
+  .newspaper-print-footer-editor-title {
+    font-size: 11pt !important;
+    font-weight: 600 !important;
+    color: #111111 !important;
+    margin: 0 0 3px !important;
+  }
+
+  .newspaper-print-footer-editor-name {
+    font-size: 12.5pt !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    margin: 0 0 4px !important;
+  }
+
+  .newspaper-print-footer-contacts {
+    font-size: 9.5pt !important;
+    color: #222222 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 4px 0 !important;
+  }
+
+  .newspaper-print-footer-sep {
+    color: #666666 !important;
+  }
+
+  .newspaper-print-footer-copyright {
+    font-size: 9pt !important;
+    color: #444444 !important;
+    margin: 6px 0 0 !important;
+    font-weight: 600 !important;
   }
 }
 
 .article-content mark {
   padding: 0.15em 0.35em;
   border-radius: 0.25rem;
+}
+
+/* ========================================================
+   CONTRAST & THEMING ENFORCEMENT RULES (LIGHT/DARK CONSISTENCY)
+   - Anywhere background is blue, navy, or dark: text MUST be WHITE (#ffffff).
+   - Anywhere background is light (white, light slate, grey): text MUST be DARK (#0f172a).
+   ======================================================== */
+
+/* 1. Ensure all elements with dark blue, navy, dark-teal, or dark backgrounds have white text */
+.site-header,
+.site-header a,
+.site-header button,
+.site-header .nav-link,
+.site-header .icon-button,
+.date-strip,
+.date-strip a,
+.date-strip span,
+.breaking-label,
+.trending-badge-pill,
+.trending-badge-label,
+.sidebar-promo,
+.sidebar-promo p,
+.sidebar-promo strong,
+.sidebar-promo a,
+.article-news-index,
+.newsletter > a,
+.footer-app > a,
+.empty-state button,
+.article-not-found a,
+.category-chip.selected,
+.category-chip:hover,
+.bg-brand-navy,
+.bg-brand-button,
+.bg-blue-600,
+.bg-blue-700,
+.bg-\[\#083c4d\],
+.bg-\[\#0a2b3a\],
+.bg-\[\#1b7d95\] {
+  color: #ffffff;
+}
+
+/* 2. Light mode text contrast enforcement */
+:root:not([data-theme="dark"]),
+html:not(.dark) {
+  --ink: #0f172a;
+  --muted: #475569;
+}
+
+:root:not([data-theme="dark"]) .page-shell,
+:root:not([data-theme="dark"]) .article-page-shell,
+html:not(.dark) .page-shell,
+html:not(.dark) .article-page-shell {
+  color: #0f172a;
+}
+
+:root:not([data-theme="dark"]) .lead-copy h1,
+:root:not([data-theme="dark"]) .quick-story h2,
+:root:not([data-theme="dark"]) .story-card h3,
+:root:not([data-theme="dark"]) .story-card h3 a,
+:root:not([data-theme="dark"]) .top-sidebar-news-title,
+:root:not([data-theme="dark"]) .opinion-content h3,
+:root:not([data-theme="dark"]) .sidebar-list a,
+:root:not([data-theme="dark"]) .article-heading h1,
+:root:not([data-theme="dark"]) .article-author-meta strong,
+:root:not([data-theme="dark"]) .article-content,
+:root:not([data-theme="dark"]) .article-content p,
+:root:not([data-theme="dark"]) .article-content h1,
+:root:not([data-theme="dark"]) .article-content h2,
+:root:not([data-theme="dark"]) .article-content h3,
+:root:not([data-theme="dark"]) .article-content h4 {
+  color: #0f172a;
+}
+
+:root:not([data-theme="dark"]) .breaking-link,
+html:not(.dark) .breaking-link {
+  color: #0f172a;
+}
+
+:root:not([data-theme="dark"]) .breaking-link:hover,
+html:not(.dark) .breaking-link:hover {
+  color: #6a0410;
+}
+
+:root:not([data-theme="dark"]) .trending-topic-chip,
+:root:not([data-theme="dark"]) .trending-topic-link,
+html:not(.dark) .trending-topic-chip,
+html:not(.dark) .trending-topic-link {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+:root:not([data-theme="dark"]) .trending-topic-chip:hover,
+:root:not([data-theme="dark"]) .trending-topic-link:hover,
+html:not(.dark) .trending-topic-chip:hover,
+html:not(.dark) .trending-topic-link:hover {
+  background: #cbd5e1;
+  color: #000000;
 }

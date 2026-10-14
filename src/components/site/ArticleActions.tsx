@@ -136,6 +136,18 @@ export default function ArticleActions({
             <small>Shares</small>
           </span>
 
+          {/* Print News Action Button (Placed before Facebook with visible Bengali label) */}
+          <button
+            aria-label="সংবাদটি প্রিন্ট বা PDF ডাউনলোড করুন"
+            className="article-print-action-btn"
+            onClick={() => window.print()}
+            title="সংবাদটি প্রিন্ট বা PDF হিসেবে ডাউনলোড করুন"
+            type="button"
+          >
+            <Printer className="w-4 h-4 shrink-0" />
+            <span>প্রিন্ট নিউজ</span>
+          </button>
+
           {/* Facebook */}
           <button
             aria-label="ফেসবুকে শেয়ার করুন"
@@ -220,17 +232,6 @@ export default function ArticleActions({
             type="button"
           >
             {copied ? <Check className="w-[18px] height-[18px] text-emerald-600" /> : <Copy className="w-[18px] height-[18px]" />}
-          </button>
-
-          {/* Print News Feature Button */}
-          <button
-            aria-label="সংবাদটি প্রিন্ট করুন"
-            className="share-icon share-print"
-            onClick={() => window.print()}
-            title="সংবাদটি প্রিন্ট করুন (Print News)"
-            type="button"
-          >
-            <Printer className="w-[18px] height-[18px]" />
           </button>
         </div>
 

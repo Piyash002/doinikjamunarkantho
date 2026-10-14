@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               (function() {
                 try {
                   var saved = localStorage.getItem('theme-preference') || localStorage.getItem('theme');
-                  var isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = saved === 'dark'; // By default light mode unless explicitly dark
                   var theme = isDark ? 'dark' : 'light';
                   document.documentElement.dataset.theme = theme;
                   if (isDark) {

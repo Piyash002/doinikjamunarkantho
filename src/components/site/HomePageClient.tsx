@@ -184,10 +184,7 @@ export default function HomePageClient({
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("theme-preference");
-    const preferDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (savedTheme ? savedTheme === "dark" : preferDark) {
-      setIsDark(true);
-    }
+    setIsDark(savedTheme === "dark");
   }, []);
 
   useEffect(() => {

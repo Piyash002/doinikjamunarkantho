@@ -90,6 +90,42 @@ function formatBanglaTime(value?: Date | string | null) {
   });
 }
 
+function formatBanglaPrintDateTime(value?: Date | string | null, isPrintTime = false) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "";
+
+  const banglaDigits = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  const toBanglaDigits = (num: number | string) =>
+    String(num).replace(/\d/g, (digit) => banglaDigits[Number(digit)] || digit);
+
+  const monthsBn = [
+    "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+    "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"
+  ];
+
+  const dhakaStr = d.toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+  const dhakaDate = new Date(dhakaStr);
+
+  const day = toBanglaDigits(dhakaDate.getDate());
+  const month = monthsBn[dhakaDate.getMonth()];
+  const year = toBanglaDigits(dhakaDate.getFullYear());
+
+  const hours = dhakaDate.getHours();
+  const minutes = toBanglaDigits(String(dhakaDate.getMinutes()).padStart(2, "0"));
+  const hour12 = hours % 12 || 12;
+  const hour12Bn = toBanglaDigits(hour12);
+
+  let period: string;
+  if (isPrintTime) {
+    period = hours >= 12 ? "পি.এম" : "এ.এম";
+  } else {
+    period = hours >= 12 ? "অপরাহ্ন" : (hours < 6 ? "রাত" : "পূর্বাহ্ন");
+  }
+
+  return `${month} ${day}, ${year}, ${hour12Bn}:${minutes} ${period}`;
+}
+
 function sanitizeArticle(content: string) {
   return sanitizeHtml(content, {
     allowedTags: [
@@ -312,7 +348,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const authorName = author?.name || String(post.author || "নিজস্ব প্রতিবেদক");
   const authorAvatar = author?.avatar?.url || settings?.logo?.url || "/logo.png";
   const siteName = settings?.siteName || "SITE_NAME";
-  let articleHtml = sanitizeArticle(post.content || "");
+  const cleanPrintHtml = sanitizeArticle(post.content || "");
+  let articleHtml = cleanPrintHtml;
   const paragraphCount = (articleHtml.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) || []).length;
   if (!post.lead && !post.excerpt) {
     articleHtml = insertArticleAd(articleHtml, ads["in-article"], 1);
@@ -357,6 +394,94 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <main className="portal article-portal">
+      {/* Newspaper Print Sheet - Strictly displayed on print / PDF download */}
+      <div className="newspaper-print-sheet" aria-hidden="true">
+        {/* Top Masthead Logo */}
+        <div className="newspaper-print-masthead">
+          {settings?.logo?.url ? (
+            <img
+              src={settings.logo.url}
+              alt={siteName}
+              className="newspaper-print-logo"
+            />
+          ) : (
+            <h1 className="newspaper-print-brand-fallback">{siteName}</h1>
+          )}
+        </div>
+
+        {/* Green Date & Publication Ribbon */}
+        <div className="newspaper-print-date-strip">
+          <span>প্রিন্ট এর তারিখ: {formatBanglaPrintDateTime(new Date(), true)}</span>
+          <span className="newspaper-print-date-sep">||</span>
+          <span>প্রকাশের তারিখ: {formatBanglaPrintDateTime(publishedAt, false)}</span>
+        </div>
+
+        {/* Prominent News Headline */}
+        <h1 className="newspaper-print-headline">{post.title}</h1>
+
+        {/* News Body Layout: Floated Left Featured Media + Caption + Reporter, with Article Body Flowing smoothly */}
+        <div className="newspaper-print-body">
+          {post.featuredImage?.url && (
+            <div className="newspaper-print-media-box">
+              <img
+                src={post.featuredImage.url}
+                alt={post.featuredImage.caption || post.title}
+                className="newspaper-print-img"
+              />
+              {post.featuredImage.caption && (
+                <p className="newspaper-print-caption">{post.featuredImage.caption}</p>
+              )}
+              <div className="newspaper-print-reporter">
+                <strong>{authorName}</strong>
+                <span>{author?.designation ? `: ${author.designation}` : ": নিজস্ব প্রতিবেদক"}</span>
+              </div>
+            </div>
+          )}
+
+          {!post.featuredImage?.url && (
+            <div className="newspaper-print-reporter mb-3">
+              <strong>{authorName}</strong>
+              <span>{author?.designation ? `: ${author.designation}` : ": নিজস্ব প্রতিবেদক"}</span>
+            </div>
+          )}
+
+          {post.lead && (
+            <p className="newspaper-print-lead">
+              <strong>{post.lead}</strong>
+            </p>
+          )}
+
+          <div
+            className="newspaper-print-content"
+            dangerouslySetInnerHTML={{ __html: cleanPrintHtml }}
+          />
+          <div className="newspaper-print-clearfix" />
+        </div>
+
+        {/* Bottom Publisher & Editorial Footer */}
+        <div className="newspaper-print-footer">
+          <div className="newspaper-print-footer-rule" />
+          <p className="newspaper-print-footer-editor-title">সম্পাদক ও প্রকাশক:</p>
+          <p className="newspaper-print-footer-editor-name">
+            {settings?.editorName || "মোঃ রুবেল হোসাইন তুহিন তালুকদার"}
+          </p>
+          <div className="newspaper-print-footer-contacts">
+            <span>মোবাইল : {settings?.phone || "০১৬৭৭-৯০৫৫৭০ / ০১৩১১৮৫০৮৮০"}</span>
+            {settings?.footerAddress && (
+              <>
+                <span className="newspaper-print-footer-sep">•</span>
+                <span>কার্যালয় : {settings.footerAddress}</span>
+              </>
+            )}
+          </div>
+          <p className="newspaper-print-footer-copyright">
+            {settings?.copyrightText
+              ? settings.copyrightText
+              : `© কপিরাইট ${new Date(publishedAt || post.createdAt).getFullYear()}, ${siteName}। সর্বস্বত্ব সংরক্ষিত`}
+          </p>
+        </div>
+      </div>
+
       <ArticleSiteHeader
         categories={categories || []}
         logoUrl={settings?.logo?.url || undefined}
@@ -371,15 +496,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </nav>
         <div className="article-columns">
           <article className="article-main">
-            {/* Newspaper Print Header */}
-            <div className="article-print-header" aria-hidden="true">
-              <div className="print-brand-title">{siteName}</div>
-              <div className="print-brand-meta">
-                <span>অনলাইন সংস্করণ: {canonicalUrl}</span>
-                <span>প্রিন্টের তারিখ: {formatBanglaDate(new Date())}</span>
-              </div>
-            </div>
-
             <header className="article-heading">
               <Link className="article-category-label" href={routeForHomeCategory(canonicalCategory)}>{categoryName}</Link>
               <h1>{post.title}</h1>
@@ -478,10 +594,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </section>
             )}
 
-            {/* Newspaper Print Footer */}
-            <div className="article-print-footer" aria-hidden="true">
-              <p>সংবাদটি {siteName} ({canonicalUrl}) থেকে মুদ্রিত।</p>
-            </div>
 
             {Array.isArray(post.tags) && post.tags.length > 0 && (
               <div className="article-tags">

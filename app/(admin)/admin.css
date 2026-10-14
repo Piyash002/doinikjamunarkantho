@@ -260,3 +260,60 @@ html, body {
 .animate-backdrop {
   animation: fadeInBackdrop 0.2s ease-out forwards;
 }
+
+/* ========================================================
+   ADMIN CONTRAST & THEMING ENFORCEMENT RULES
+   - Blue or dark backgrounds -> ALWAYS crisp white text.
+   - Light backgrounds -> ALWAYS dark text (#0f172a / #334155).
+   ======================================================== */
+
+.bg-\[\#0a2b3a\],
+.bg-\[\#1b7d95\],
+.bg-\[\#083c4d\],
+.bg-blue-600,
+.bg-blue-700,
+.bg-slate-900,
+.bg-slate-800 {
+  color: #ffffff;
+}
+
+button.bg-\[\#0a2b3a\],
+button.bg-\[\#1b7d95\],
+button.bg-blue-600,
+a.bg-\[\#0a2b3a\],
+a.bg-\[\#1b7d95\],
+a.bg-blue-600,
+.btn-primary {
+  color: #ffffff !important;
+}
+
+button.bg-\[\#0a2b3a\] *,
+button.bg-\[\#1b7d95\] *,
+button.bg-blue-600 *,
+a.bg-\[\#0a2b3a\] *,
+a.bg-\[\#1b7d95\] * {
+  color: #ffffff;
+}
+
+/* Light mode specific high contrast */
+html:not(.dark),
+[data-theme="light"] {
+  --admin-text: #0f172a;
+  --admin-text-secondary: #334155;
+  --admin-muted: #64748b;
+  --admin-bg: #f8fafc;
+  --admin-card: #ffffff;
+  --admin-border: #e2e8f0;
+}
+
+html:not(.dark) input,
+html:not(.dark) select,
+html:not(.dark) textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .admin-shell-container {
+  color: #0f172a;
+}
+
