@@ -100,7 +100,7 @@ async function seed() {
   const categories = await Category.insertMany(
     categorySeed.map((entry, index) => ({
       ...entry,
-      slug: slugify(entry.name_bn, { lower: true, strict: true }),
+      slug: slugify(entry.name_en, { lower: true, strict: true }) || `category-${index + 1}`,
       order: index + 1,
       showInNav: true,
       showOnHome: true,
@@ -187,7 +187,7 @@ async function seed() {
   for (const category of categories) {
     for (let index = 0; index < 8; index += 1) {
       const title = `${category.name_bn} ${index + 1}: ${['সর্বশেষ', 'বিশেষ প্রতিবেদন', 'বিশ্লেষণ', 'সমস্যা', 'উন্নয়ন', 'সামাজিক', 'অভিযোগ', 'তথ্য'][index % 8]}`;
-      const slug = slugify(`${category.name_bn}-${index + 1}-${title}`, { lower: true, strict: true });
+      const slug = `${category.slug}-post-${index + 1}`;
       const itemImage = buildImage(index, category.name_bn);
 
       posts.push({

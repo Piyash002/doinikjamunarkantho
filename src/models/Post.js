@@ -65,7 +65,6 @@ const postSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-postSchema.index({ slug: 1 }, { unique: true });
 postSchema.index({ isDeleted: 1, status: 1, publishedAt: -1 });
 postSchema.index({ isDeleted: 1, category: 1, status: 1, publishedAt: -1 });
 postSchema.index({ isDeleted: 1, author: 1 });
