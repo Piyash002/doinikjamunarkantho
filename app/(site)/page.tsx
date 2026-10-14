@@ -1,5 +1,6 @@
 import HomePageClient from '@/src/components/site/HomePageClient';
 import Settings from '@/src/models/Settings';
+import AdSlot from '@/src/models/AdSlot';
 import { getHomeData, getNavCategories } from '@/src/services/news';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
 
@@ -15,16 +16,20 @@ export default async function HomePage() {
   let latestPosts: any[] = [];
   let popularPosts: any[] = [];
   let opinionPosts: any[] = [];
+  let breakingPosts: any[] = [];
+  let trendingPosts: any[] = [];
   let trendingTopics: any[] = [];
+  let adsMap: Record<string, any> = {};
   let siteName = fallbackSiteName;
   let logoUrl = '/logo.png';
 
   try {
-    const [settings, homeData, topicsData, navCats] = await Promise.all([
+    const [settings, homeData, topicsData, navCats, activeAds] = await Promise.all([
       Settings.findOne({}).lean(),
-      getHomeData().catch(() => ({ categories: [], featured: [], latest: [], trending: [] })),
+      getHomeData().catch(() => ({ categories: [], featured: [], latest: [], trending: [], breaking: [] })),
       getPublicTrendingTopics().catch(() => []),
       getNavCategories().catch(() => []),
+      AdSlot.find({ isActive: true, imageUrl: { $ne: '' } }).lean().catch(() => []),
     ]);
 
     navCategories = navCats || [];
@@ -43,17 +48,37 @@ export default async function HomePage() {
         .filter(Boolean);
     }
 
+    const now = new Date();
+    const validAds = (activeAds || []).filter((ad: any) => {
+      if (!ad.isActive) return false;
+      if (!ad.imageUrl || !ad.imageUrl.trim()) return false;
+      if (ad.startDate && new Date(ad.startDate) > now) return false;
+      if (ad.endDate && new Date(ad.endDate) < now) return false;
+      return true;
+    });
+
+    for (const ad of validAds) {
+      if (ad.position && !adsMap[ad.position]) {
+        adsMap[ad.position] = ad;
+      }
+    }
+
     featuredPosts = Array.isArray(homeData?.featured) ? homeData.featured : [];
     latestPosts = Array.isArray(homeData?.latest) ? homeData.latest : [];
+    breakingPosts = Array.isArray(homeData?.breaking) ? homeData.breaking : [];
+    trendingPosts = Array.isArray(homeData?.trending) ? homeData.trending : [];
     popularPosts = [...latestPosts].sort((a, b) => (Number(b.views) || 0) - (Number(a.views) || 0));
     opinionPosts = latestPosts.filter((post: any) => /মতামত|opinion/i.test(post?.category || post?.title || ''));
   } catch (error) {
     navCategories = [];
     trendingKeywords = fallbackTrending;
     trendingTopics = [];
+    adsMap = {};
     siteName = fallbackSiteName;
     featuredPosts = [];
     latestPosts = [];
+    breakingPosts = [];
+    trendingPosts = [];
     popularPosts = [];
     opinionPosts = [];
   }
@@ -67,8 +92,11 @@ export default async function HomePage() {
       trendingTopics={JSON.parse(JSON.stringify(trendingTopics))}
       featuredPosts={JSON.parse(JSON.stringify(featuredPosts))}
       latestPosts={JSON.parse(JSON.stringify(latestPosts))}
+      breakingPosts={JSON.parse(JSON.stringify(breakingPosts))}
+      trendingPosts={JSON.parse(JSON.stringify(trendingPosts))}
       popularPosts={JSON.parse(JSON.stringify(popularPosts))}
       opinionPosts={JSON.parse(JSON.stringify(opinionPosts))}
+      ads={JSON.parse(JSON.stringify(adsMap))}
     />
   );
 }

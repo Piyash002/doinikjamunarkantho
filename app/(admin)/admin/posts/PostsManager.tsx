@@ -269,6 +269,7 @@ export default function PostsManager() {
               <span className="text-xs text-slate-400 font-mono">/{post.slug}</span>
               {post.isBreaking && <span className="text-[10px] bg-rose-500 text-white font-bold px-1.5 py-0.2 rounded">BREAKING</span>}
               {post.isFeatured && <span className="text-[10px] bg-amber-500 text-white font-bold px-1.5 py-0.2 rounded">FEATURED</span>}
+              {post.isTrending && <span className="text-[10px] bg-purple-500 text-white font-bold px-1.5 py-0.2 rounded">TRENDING</span>}
             </div>
           </div>
         </div>

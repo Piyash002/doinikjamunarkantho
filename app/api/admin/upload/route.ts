@@ -1,15 +1,35 @@
 import { NextRequest } from 'next/server';
 import { requireAuthSession, apiSuccess, apiError, checkRateLimit } from '@/src/lib/apiResponse';
-import cloudinary from '@/src/lib/cloudinary';
+import cloudinary, {
+  configureCloudinary,
+  isCloudinaryConfigured,
+  uploadBufferToCloudinary,
+} from '@/src/lib/cloudinary';
 
 export const runtime = 'nodejs';
+
+export async function GET(request: NextRequest) {
+  const { session, errorResponse } = await requireAuthSession(request);
+  if (errorResponse || !session) return errorResponse;
+
+  configureCloudinary();
+  const configured = isCloudinaryConfigured();
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'eesshklj';
+
+  return apiSuccess({
+    configured,
+    cloudName,
+    hasKey: Boolean(process.env.CLOUDINARY_API_KEY || '753453721251931'),
+    hasSecret: Boolean(process.env.CLOUDINARY_API_SECRET || '4GF5lJn4X7_lkjLk27GsX6DGx4Q'),
+  });
+}
 
 export async function POST(request: NextRequest) {
   const { session, errorResponse } = await requireAuthSession(request);
   if (errorResponse || !session) return errorResponse;
 
   const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
-  const rate = checkRateLimit(`upload:${ip}`, 40, 60_000);
+  const rate = checkRateLimit(`upload:${ip}`, 100, 60_000);
   if (!rate.allowed) {
     return apiError('Upload rate limit exceeded. Please wait a moment.', 429);
   }
@@ -23,22 +43,11 @@ export async function POST(request: NextRequest) {
       const folder = body?.folder || 'doinikjamunarkantho';
       const timestamp = Math.round(Date.now() / 1000);
 
-      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-      const apiKey = process.env.CLOUDINARY_API_KEY;
-      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      configureCloudinary();
 
-      if (!cloudName || !apiKey || !apiSecret) {
-        // In local development without Cloudinary credentials configured
-        return apiSuccess({
-          mockMode: true,
-          cloudName: '',
-          apiKey: '',
-          timestamp,
-          folder,
-          signature: '',
-          message: 'Cloudinary credentials not set in environment.',
-        });
-      }
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'eesshklj';
+      const apiKey = process.env.CLOUDINARY_API_KEY || '753453721251931';
+      const apiSecret = process.env.CLOUDINARY_API_SECRET || '4GF5lJn4X7_lkjLk27GsX6DGx4Q';
 
       const signature = cloudinary.utils.api_sign_request(
         {
@@ -58,57 +67,41 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Direct upload via FormData if Cloudinary is configured on server
+    // Direct upload via multipart/form-data to Cloudinary (handles ANY size, ANY format)
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       const file = formData.get('file') as File | null;
-      if (!file) return apiError('No file provided.', 400);
+      if (!file) return apiError('কোনো ফাইল পাওয়া যায়নি (No file provided).', 400);
 
-      // Validate file size and type
-      if (file.size > 10 * 1024 * 1024) {
-        return apiError('File size exceeds 10MB limit.', 400);
-      }
-      if (!file.type.startsWith('image/')) {
-        return apiError('Only image files are allowed.', 400);
-      }
-
+      // Read file buffer directly
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      if (process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-        const uploadResult = await new Promise<any>((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { folder: 'doinikjamunarkantho' },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          ).end(buffer);
-        });
-
-        return apiSuccess({
-          url: uploadResult.secure_url,
-          publicId: uploadResult.public_id,
-          width: uploadResult.width,
-          height: uploadResult.height,
-          fileSize: uploadResult.bytes,
-          format: uploadResult.format,
-        });
-      } else {
-        // Fallback: return base64 data URL for local development if Cloudinary is unconfigured
-        const dataUrl = `data:${file.type};base64,${buffer.toString('base64')}`;
-        return apiSuccess({
-          url: dataUrl,
-          publicId: `local-${Date.now()}`,
-          width: 800,
-          height: 600,
-          fileSize: file.size,
-          format: file.type.split('/')[1] || 'jpeg',
-        });
+      if (buffer.length === 0) {
+        return apiError('ফাইলটি খালি বা ত্রুটিপূর্ণ (Empty file provided).', 400);
       }
+
+      // Stream upload directly to Cloudinary using auto format detection
+      const uploadResult: any = await uploadBufferToCloudinary(buffer, {
+        folder: 'doinikjamunarkantho',
+        resource_type: 'auto', // Cloudinary automatically supports any image format (JPG, PNG, WebP, GIF, SVG, AVIF, HEIC, TIFF, etc.)
+      });
+
+      return apiSuccess({
+        url: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        width: uploadResult.width || 0,
+        height: uploadResult.height || 0,
+        fileSize: uploadResult.bytes || buffer.length,
+        format: uploadResult.format || file.name.split('.').pop() || 'jpg',
+      });
     }
 
-    return apiError('Unsupported content type.', 400);
-  } catch (error) {
-    return apiError(error, 500);
+    return apiError('Unsupported content type. Expected multipart/form-data.', 400);
+  } catch (error: any) {
+    console.error('Upload handler error:', error);
+    return apiError(
+      error?.message || 'Cloudinary আপলোড ব্যর্থ হয়েছে। দয়া করে ইন্টারনেট ও ফাইল চেক করুন।',
+      500
+    );
   }
 }

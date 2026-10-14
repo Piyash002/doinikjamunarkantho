@@ -5,6 +5,9 @@ const adSlotSchema = new mongoose.Schema(
     key: { type: String, required: true, unique: true, trim: true },
     imageUrl: { type: String, default: '' },
     link: { type: String, default: '#' },
+    sizeHint: { type: String, default: '' },
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null },
     isActive: { type: Boolean, default: true },
     position: {
       type: String,

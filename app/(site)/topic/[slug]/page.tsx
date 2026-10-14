@@ -191,9 +191,9 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
       />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-4">
-        {/* Top Leaderboard Ad Banner (Akij Board / Lumino style reference) */}
-        <section aria-label="বিজ্ঞাপন" className="mb-6">
-          {headerAd?.imageUrl ? (
+        {/* Top Leaderboard Ad Banner */}
+        {headerAd?.imageUrl && (
+          <section aria-label="বিজ্ঞাপন" className="mb-6">
             <a
               href={headerAd.link || '#'}
               target="_blank"
@@ -209,29 +209,8 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
                 unoptimized
               />
             </a>
-          ) : (
-            <div className="relative overflow-hidden rounded-md border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 px-4 py-3 sm:px-8 sm:py-4 text-white shadow-xs">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-4">
-                  <span className="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-sm uppercase tracking-wider">
-                    AKIJ BOARD
-                  </span>
-                  <div>
-                    <span className="text-xs text-slate-400 block">Bangladesh's First Ever</span>
-                    <strong className="text-base sm:text-lg text-white font-bold tracking-wide">
-                      SYNCHRO MELAMINE BOARD
-                    </strong>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-emerald-400">
-                  <span className="text-[11px] bg-white/10 px-2 py-0.5 rounded border border-white/20">
-                    বিজ্ঞাপন
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Topic Header Block (Exact Match with Screenshot 3) */}
         <header className="mb-8 border-b border-slate-200 dark:border-slate-800 pb-5">
@@ -453,9 +432,9 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
                 </div>
               </div>
 
-              {/* Sidebar Display Ad (Akij Board style banner from Screenshot 3) */}
-              <div className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
-                {sidebarAd?.imageUrl ? (
+              {/* Sidebar Display Ad */}
+              {sidebarAd?.imageUrl && (
+                <div className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                   <a
                     href={sidebarAd.link || '#'}
                     target="_blank"
@@ -471,38 +450,18 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
                       unoptimized
                     />
                     <span className="absolute top-1.5 right-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                      Ad
-                    </span>
-                  </a>
-                ) : (
-                  <div className="p-5 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 text-white relative">
-                    <span className="absolute top-2 right-2 bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded">
                       বিজ্ঞাপন
                     </span>
-                    <span className="text-xs font-bold text-amber-300 uppercase tracking-wider block">
-                      AKIJ BOARD • LUMINO
-                    </span>
-                    <strong className="text-lg sm:text-xl font-bold block mt-1 tracking-tight">
-                      SYNCHRO MELAMINE BOARD
-                    </strong>
-                    <p className="text-xs text-slate-300 mt-2">
-                      Now you can feel the natural wooden texture in your interior.
-                    </p>
-                    <div className="mt-4">
-                      <span className="inline-block bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-sm">
-                        Explore Collection →
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  </a>
+                </div>
+              )}
             </aside>
           </div>
         )}
 
         {/* Bottom Banner Ad */}
-        <section aria-label="বিজ্ঞাপন" className="mt-10 mb-8">
-          {betweenAd?.imageUrl ? (
+        {betweenAd?.imageUrl && (
+          <section aria-label="বিজ্ঞাপন" className="mt-10 mb-8">
             <a
               href={betweenAd.link || '#'}
               target="_blank"
@@ -518,28 +477,8 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
                 unoptimized
               />
             </a>
-          ) : (
-            <div className="relative overflow-hidden rounded-md border border-amber-300/40 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-950/40 dark:via-yellow-950/20 dark:to-amber-950/40 p-4 sm:p-5 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
-                    ফ্রেশ
-                  </span>
-                  <strong className="text-lg sm:text-2xl font-extrabold text-amber-950 dark:text-amber-100">
-                    সরিষার তেল
-                  </strong>
-                  <span className="hidden md:inline-block text-slate-400">•</span>
-                  <span className="hidden md:inline-block text-base sm:text-xl font-bold text-amber-800 dark:text-amber-300 italic">
-                    বাংলার সেই স্বাদ
-                  </span>
-                </div>
-                <span className="text-[11px] text-slate-500 bg-white/70 dark:bg-black/40 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                  বিজ্ঞাপন
-                </span>
-              </div>
-            </div>
-          )}
-        </section>
+          </section>
+        )}
       </div>
 
       {/* Footer */}

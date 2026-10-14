@@ -4,6 +4,8 @@ import { authorSchema } from '@/src/lib/validators';
 import { getAdminAuthors, createAdminAuthor } from '@/src/services/adminAuthorService';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   const { session, errorResponse } = await requireAuthSession(request);

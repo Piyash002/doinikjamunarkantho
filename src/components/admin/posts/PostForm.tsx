@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -22,6 +23,7 @@ import {
   Clock,
   Plus,
   Trash2,
+  RotateCw,
 } from 'lucide-react';
 
 import { PageHeader } from '../ui/PageHeader';
@@ -63,7 +65,7 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
   const [category, setCategory] = useState(initialData?.category || 'জাতীয়');
   const [subCategory, setSubCategory] = useState(initialData?.subCategory || '');
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
-  const [author, setAuthor] = useState(initialData?.author || user?.username || 'admin');
+  const [author, setAuthor] = useState(initialData?.author || 'নিজস্ব প্রতিবেদক');
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>(initialData?.status || 'draft');
   const [publishedAt, setPublishedAt] = useState<Date | null>(
     initialData?.publishedAt ? new Date(initialData.publishedAt) : null
@@ -108,9 +110,53 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
     setOpenSections((prev) => ({ ...prev, [sec]: !prev[sec] }));
   };
 
-  // Dynamic Categories & Trending Topics
+  // Dynamic Categories, Authors & Trending Topics
   const [availableCategories, setAvailableCategories] = useState<any[]>([]);
   const [availableTopics, setAvailableTopics] = useState<any[]>([]);
+  const [fallbackAuthors, setFallbackAuthors] = useState<any[]>([]);
+  const [isCustomAuthor, setIsCustomAuthor] = useState(false);
+  const [isQuickAuthorModalOpen, setIsQuickAuthorModalOpen] = useState(false);
+  const [isCreatingAuthor, setIsCreatingAuthor] = useState(false);
+
+  // Quick Author Form State
+  const [newAuthorName, setNewAuthorName] = useState('');
+  const [newAuthorDesignation, setNewAuthorDesignation] = useState('');
+  const [newAuthorBio, setNewAuthorBio] = useState('');
+  const [newAuthorAvatar, setNewAuthorAvatar] = useState<ImageValue | null>(null);
+
+  // SWR for Authors - auto-revalidates on focus and shares cache with /admin/authors
+  const { data: authorsRes, mutate: mutateAuthors } = useSWR(
+    '/api/admin/authors',
+    (url: string) => fetch(url, { cache: 'no-store' }).then((r) => r.json()),
+    {
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
+  );
+
+  const availableAuthors = useMemo(() => {
+    if (authorsRes?.success && Array.isArray(authorsRes.data) && authorsRes.data.length > 0) {
+      return authorsRes.data;
+    }
+    return fallbackAuthors;
+  }, [authorsRes, fallbackAuthors]);
+
+  const fetchAuthors = useCallback(() => {
+    mutateAuthors();
+    fetch('/api/admin/authors?_t=' + Date.now(), { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && Array.isArray(resData.data)) {
+          setFallbackAuthors(resData.data);
+        }
+      })
+      .catch(() => {});
+  }, [mutateAuthors]);
+
+  const selectedAuthorDoc = useMemo(() => {
+    if (!author || isCustomAuthor) return null;
+    return availableAuthors.find((a: any) => a.name === author);
+  }, [author, isCustomAuthor, availableAuthors]);
 
   useEffect(() => {
     fetch('/api/admin/categories')
@@ -130,7 +176,48 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
         }
       })
       .catch(() => {});
-  }, []);
+
+    fetchAuthors();
+  }, [fetchAuthors]);
+
+  async function handleQuickCreateAuthor(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newAuthorName.trim()) return;
+
+    try {
+      setIsCreatingAuthor(true);
+      const res = await fetch('/api/admin/authors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newAuthorName.trim(),
+          designation: newAuthorDesignation.trim(),
+          bio: newAuthorBio.trim(),
+          avatar: newAuthorAvatar,
+          isActive: true,
+        }),
+      });
+
+      const resData = await res.json();
+      if (!res.ok || !resData.success) {
+        throw new Error(resData.error || 'Failed to create author.');
+      }
+
+      toastSuccess(`লেখক "${newAuthorName}" সফলভাবে তৈরি ও নির্বাচিত করা হয়েছে!`);
+      setAuthor(newAuthorName.trim());
+      setIsCustomAuthor(false);
+      setIsQuickAuthorModalOpen(false);
+      setNewAuthorName('');
+      setNewAuthorDesignation('');
+      setNewAuthorBio('');
+      setNewAuthorAvatar(null);
+      fetchAuthors();
+    } catch (err: any) {
+      toastError(err.message || 'লেখক তৈরি করতে সমস্যা হয়েছে।');
+    } finally {
+      setIsCreatingAuthor(false);
+    }
+  }
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -565,12 +652,130 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               </FormField>
             )}
 
-            <FormField label="Assigned Author">
-              <Input
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="Author name..."
-              />
+            <FormField
+              label="Assigned Author (লেখক / প্রতিবেদক)"
+              hint="Select from authors added in the Author section, or choose standard staff byline"
+            >
+              <div className="flex flex-col gap-2.5">
+                <Select
+                  value={isCustomAuthor ? '__custom__' : author}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setIsCustomAuthor(true);
+                    } else {
+                      setIsCustomAuthor(false);
+                      setAuthor(e.target.value);
+                    }
+                  }}
+                >
+                  <optgroup label="টিম ও লেখকবৃন্দ (Authors & Reporters)">
+                    {availableAuthors.length > 0 ? (
+                      availableAuthors
+                        .filter((a: any) => a.isActive !== false)
+                        .map((a: any) => (
+                          <option key={a._id} value={a.name}>
+                            👤 {a.name}{a.designation ? ` (${a.designation})` : ''}
+                          </option>
+                        ))
+                    ) : (
+                      <option value="" disabled>লেখক তালিকা লোড হচ্ছে...</option>
+                    )}
+                  </optgroup>
+
+                  <optgroup label="সাধারণ রিপোর্টার পদবী">
+                    <option value="নিজস্ব প্রতিবেদক">নিজস্ব প্রতিবেদক (Default)</option>
+                    <option value="অনলাইন ডেস্ক">অনলাইন ডেস্ক</option>
+                    <option value="বিশেষ প্রতিনিধি">বিশেষ প্রতিনিধি</option>
+                  </optgroup>
+
+                  {author &&
+                    !['নিজস্ব প্রতিবেদক', 'অনলাইন ডেস্ক', 'বিশেষ প্রতিনিধি'].includes(author) &&
+                    !availableAuthors.some((a: any) => a.name === author) &&
+                    !isCustomAuthor && (
+                      <optgroup label="বর্তমান নির্বাচিত লেখক">
+                        <option value={author}>{author}</option>
+                      </optgroup>
+                    )}
+
+                  <option value="__custom__">✍️ কাস্টম লেখক নাম লিখুন...</option>
+                </Select>
+
+                {selectedAuthorDoc && (
+                  <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                    {selectedAuthorDoc.avatar?.url ? (
+                      <img
+                        src={selectedAuthorDoc.avatar.url}
+                        alt={selectedAuthorDoc.name}
+                        className="w-8 h-8 rounded-full object-cover border border-slate-300 dark:border-slate-600 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#1b7d95]/15 text-[#1b7d95] font-bold text-xs flex items-center justify-center shrink-0">
+                        {selectedAuthorDoc.name.slice(0, 1)}
+                      </div>
+                    )}
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
+                        {selectedAuthorDoc.name}
+                      </span>
+                      {selectedAuthorDoc.designation && (
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                          {selectedAuthorDoc.designation}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {isCustomAuthor && (
+                  <div className="flex items-center gap-2 animate-in fade-in duration-150">
+                    <Input
+                      value={author}
+                      onChange={(e) => setAuthor(e.target.value)}
+                      placeholder="লেখকের নাম লিখুন..."
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsCustomAuthor(false);
+                        setAuthor('নিজস্ব প্রতিবেদক');
+                      }}
+                    >
+                      বাতিল
+                    </Button>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-xs text-slate-400 mt-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickAuthorModalOpen(true)}
+                    className="text-[#1b7d95] dark:text-sky-400 hover:underline flex items-center gap-1 font-medium"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> নতুন লেখক যোগ করুন
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={fetchAuthors}
+                      title="তালিকা রিফ্রেশ করুন"
+                      className="hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition-colors"
+                    >
+                      <RotateCw className="w-3 h-3" /> রিফ্রেশ
+                    </button>
+                    <span>•</span>
+                    <Link
+                      href="/admin/authors"
+                      target="_blank"
+                      className="hover:text-slate-600 dark:hover:text-slate-200 hover:underline"
+                    >
+                      ম্যানেজ
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </FormField>
           </div>
 
@@ -866,6 +1071,64 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
             ))}
           </div>
         </div>
+      </Modal>
+
+      {/* Quick Add Author Modal */}
+      <Modal
+        isOpen={isQuickAuthorModalOpen}
+        onClose={() => setIsQuickAuthorModalOpen(false)}
+        title="নতুন লেখক / প্রতিবেদক যোগ করুন"
+        maxWidth="md"
+      >
+        <form onSubmit={handleQuickCreateAuthor} className="flex flex-col gap-4">
+          <ImageUploader
+            value={newAuthorAvatar}
+            onChange={setNewAuthorAvatar}
+            label="লেখকের ছবি (Photo)"
+            showCaption={false}
+            showAlt={false}
+          />
+
+          <FormField label="লেখকের পুরো নাম" required>
+            <Input
+              value={newAuthorName}
+              onChange={(e) => setNewAuthorName(e.target.value)}
+              placeholder="যেমন: রফিক আহমেদ"
+              required
+              autoFocus
+            />
+          </FormField>
+
+          <FormField label="পদবী / ডেসিগনেশন">
+            <Input
+              value={newAuthorDesignation}
+              onChange={(e) => setNewAuthorDesignation(e.target.value)}
+              placeholder="যেমন: সিনিয়র রিপোর্টার / বিশেষ প্রতিনিধি"
+            />
+          </FormField>
+
+          <FormField label="সংক্ষিপ্ত পরিচিতি (Bio)">
+            <Textarea
+              value={newAuthorBio}
+              onChange={(e) => setNewAuthorBio(e.target.value)}
+              placeholder="লেখকের সংক্ষিপ্ত পরিচিতি..."
+              rows={3}
+            />
+          </FormField>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setIsQuickAuthorModalOpen(false)}
+            >
+              বাতিল
+            </Button>
+            <Button variant="primary" type="submit" isLoading={isCreatingAuthor}>
+              সংরক্ষণ ও নির্বাচন করুন
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

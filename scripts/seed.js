@@ -183,49 +183,10 @@ async function seed() {
     },
   ]);
 
-  const posts = [];
-  for (const category of categories) {
-    for (let index = 0; index < 8; index += 1) {
-      const title = `${category.name_bn} ${index + 1}: ${['সর্বশেষ', 'বিশেষ প্রতিবেদন', 'বিশ্লেষণ', 'সমস্যা', 'উন্নয়ন', 'সামাজিক', 'অভিযোগ', 'তথ্য'][index % 8]}`;
-      const slug = `${category.slug}-post-${index + 1}`;
-      const itemImage = buildImage(index, category.name_bn);
-
-      posts.push({
-        title,
-        slug,
-        excerpt: `এই প্রতিবেদনে ${category.name_bn} নিয়ে সাম্প্রতিক উন্নয়ন ও বিশ্লেষণ উপস্থাপন করা হয়েছে।`,
-        content: `<h2>${category.name_bn}</h2><p>বাংলাদেশের সংবাদ পরিবেশে ${category.name_bn} নিয়ে সাম্প্রতিক আলোচনার পরিপ্রেক্ষিতে গুরুত্বপূর্ণ তথ্য তুলে ধরা হয়েছে।</p><p>এখানে বিস্তারিত বিশ্লেষণ, কারণ, প্রভাব ও ভবিষ্যৎ পথনির্দেশনা সংযুক্ত করা হয়েছে।</p>`,
-        featuredImage: itemImage,
-        gallery: Array.from({ length: 3 }, (_, galleryIndex) => buildImage(index + galleryIndex + 1, `${category.name_bn}-${galleryIndex + 1}`)),
-        category: category.slug,
-        subCategory: '',
-        tags: [category.name_bn, 'বাংলাদেশ', 'সংবাদ'],
-        author: authors[(index + category.order) % authors.length].name,
-        status: 'published',
-        publishedAt: new Date(Date.now() - (index + 1) * 3600000 * (category.order % 7 + 1)),
-        isBreaking: index === 0,
-        isFeatured: index < 2,
-        isTrending: index < 3,
-        homePosition: index + 1,
-        division: '',
-        district: '',
-        upazila: '',
-        views: 1000 + index * 150 + category.order * 30,
-        seo: {
-          title: `${title} | SITE_NAME`,
-          description: `${category.name_bn} সম্পর্কিত সর্বশেষ সংবাদ ও বিশ্লেষণ।`,
-        },
-      });
-    }
-  }
-
-  await Post.insertMany(posts);
-
   console.log('Seed completed:', {
     admin: adminUser.username,
     categories: categories.length,
     authors: authors.length,
-    posts: posts.length,
   });
 
   await mongoose.disconnect();

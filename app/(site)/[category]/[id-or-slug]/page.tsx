@@ -112,11 +112,12 @@ function sanitizeArticle(content: string) {
       "s",
       "del",
       "ins",
+      "mark",
     ],
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
       a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title", "width", "height", "loading"],
+      img: ["src", "alt", "title", "width", "height", "loading", "style", "data-width", "data-alignment"],
       iframe: [
         "src",
         "title",
@@ -131,7 +132,32 @@ function sanitizeArticle(content: string) {
       ol: ["start"],
       th: ["colspan", "rowspan"],
       td: ["colspan", "rowspan"],
+      figure: ["class", "style"],
+      figcaption: ["class"],
+      span: ["class", "style"],
+      mark: ["class", "style", "data-color"],
       "*": ["class"],
+    },
+    allowedStyles: {
+      img: {
+        width: [/.*/],
+        'max-width': [/.*/],
+        height: [/.*/],
+        display: [/.*/],
+        float: [/.*/],
+        margin: [/.*/],
+        'margin-left': [/.*/],
+        'margin-right': [/.*/],
+        clear: [/.*/],
+      },
+      span: {
+        color: [/.*/],
+        'background-color': [/.*/],
+      },
+      mark: {
+        'background-color': [/.*/],
+        color: [/.*/],
+      },
     },
     allowedIframeHostnames: [
       "www.youtube.com",
@@ -345,6 +371,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </nav>
         <div className="article-columns">
           <article className="article-main">
+            {/* Newspaper Print Header */}
+            <div className="article-print-header" aria-hidden="true">
+              <div className="print-brand-title">{siteName}</div>
+              <div className="print-brand-meta">
+                <span>অনলাইন সংস্করণ: {canonicalUrl}</span>
+                <span>প্রিন্টের তারিখ: {formatBanglaDate(new Date())}</span>
+              </div>
+            </div>
+
             <header className="article-heading">
               <Link className="article-category-label" href={routeForHomeCategory(canonicalCategory)}>{categoryName}</Link>
               <h1>{post.title}</h1>
@@ -352,16 +387,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <div className="article-meta-row">
                 <div className="article-author-meta">
                   <Image
-                    alt=""
+                    alt={authorName}
                     className="article-author-avatar"
                     height={48}
                     src={authorAvatar}
                     width={48}
                   />
                   <div>
-                    <strong>{authorName}</strong>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <strong>{authorName}</strong>
+                      {author?.designation && (
+                        <span className="article-author-designation"> • {author.designation}</span>
+                      )}
+                    </div>
                     <p>
                       {formatBanglaDate(publishedAt)}{publishedAt ? ", " : ""}{formatBanglaTime(publishedAt)}
+                      {(post.views || post.viewCount) ? (
+                        <span className="font-semibold text-slate-500"> • {post.views || post.viewCount} বার পঠিত</span>
+                      ) : null}
                     </p>
                     {updatedAt && publishedAt && new Date(updatedAt).getTime() !== new Date(publishedAt).getTime() && (
                       <p className="article-updated">আপডেট: {formatBanglaDate(updatedAt)}, {formatBanglaTime(updatedAt)}</p>
@@ -372,6 +415,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   key={String(post._id)}
                   postId={String(post._id)}
                   shareCount={post.shareCount || 0}
+                  viewCount={post.views || post.viewCount || 0}
                   title={post.title}
                 />
               </div>
@@ -401,6 +445,42 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             <div className="article-content">
               <div dangerouslySetInnerHTML={{ __html: articleHtml }} />
+            </div>
+
+            {/* Author Profile Card if bio or designation is available */}
+            {author && (author.bio || author.designation) && (
+              <section aria-label="লেখক পরিচিতি" className="article-author-profile-box">
+                <div className="article-author-profile-avatar">
+                  {author.avatar?.url ? (
+                    <Image
+                      src={author.avatar.url}
+                      alt={author.name}
+                      width={64}
+                      height={64}
+                      className="article-author-profile-img"
+                    />
+                  ) : (
+                    <div className="article-author-profile-initials">
+                      {author.name?.[0] || 'A'}
+                    </div>
+                  )}
+                </div>
+                <div className="article-author-profile-content">
+                  <span className="article-author-profile-label">লেখক পরিচিতি</span>
+                  <h3 className="article-author-profile-name">{author.name}</h3>
+                  {author.designation && (
+                    <p className="article-author-profile-designation">{author.designation}</p>
+                  )}
+                  {author.bio && (
+                    <p className="article-author-profile-bio">{author.bio}</p>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Newspaper Print Footer */}
+            <div className="article-print-footer" aria-hidden="true">
+              <p>সংবাদটি {siteName} ({canonicalUrl}) থেকে মুদ্রিত।</p>
             </div>
 
             {Array.isArray(post.tags) && post.tags.length > 0 && (

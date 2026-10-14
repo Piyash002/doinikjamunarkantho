@@ -102,26 +102,27 @@ html, body {
   border: 1px solid var(--admin-border);
   border-radius: 0.75rem;
   background: var(--admin-card);
-  overflow: hidden;
+  position: relative;
 }
 
 .tiptap-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 8px 12px;
   background: var(--admin-bg);
   border-bottom: 1px solid var(--admin-border);
-  overflow-x: auto;
-  white-space: nowrap;
-  -webkit-overflow-scrolling: touch;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
   position: sticky;
   top: 0;
   z-index: 20;
 }
 
-.tiptap-toolbar::-webkit-scrollbar {
-  height: 3px;
+.tiptap-content-area mark {
+  padding: 0.15em 0.35em;
+  border-radius: 0.25rem;
 }
 
 .tiptap-content-area {
@@ -160,6 +161,60 @@ html, body {
   height: auto;
   border-radius: 0.5rem;
   margin: 1rem 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tiptap-content-area img:hover {
+  filter: brightness(0.97);
+}
+
+.tiptap-content-area img.ProseMirror-selectednode {
+  outline: 3px solid #1b7d95 !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(27, 125, 149, 0.2);
+}
+
+.tiptap-content-area img.image-size-25 {
+  width: 25% !important;
+}
+
+.tiptap-content-area img.image-size-50 {
+  width: 50% !important;
+}
+
+.tiptap-content-area img.image-size-75 {
+  width: 75% !important;
+}
+
+.tiptap-content-area img.image-size-100 {
+  width: 100% !important;
+}
+
+.tiptap-content-area img.image-align-center {
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  clear: both;
+}
+
+.tiptap-content-area img.image-align-left {
+  float: left !important;
+  margin: 0.5rem 1.25rem 1rem 0 !important;
+}
+
+.tiptap-content-area img.image-align-right {
+  float: right !important;
+  margin: 0.5rem 0 1rem 1.25rem !important;
+}
+
+.tiptap-content-area .image-caption {
+  font-size: 0.85rem;
+  color: var(--admin-muted, #64748b);
+  text-align: center;
+  margin-top: -0.5rem;
+  margin-bottom: 1.25rem;
+  font-style: italic;
 }
 
 .tiptap-content-area table {

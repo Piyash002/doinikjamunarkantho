@@ -72,13 +72,18 @@ export default function MediaPage() {
       setUploadQueue((prev) => [...prev, { id: queueId, name: file.name, progress: 20 }]);
 
       try {
-        const compressed = await compressImage(file, 2000, 0.85);
+        let uploadFile = file;
+        try {
+          uploadFile = await compressImage(file, 2500, 0.90);
+        } catch {
+          uploadFile = file;
+        }
         setUploadQueue((prev) =>
           prev.map((item) => (item.id === queueId ? { ...item, progress: 50 } : item))
         );
 
         const formData = new FormData();
-        formData.append('file', compressed);
+        formData.append('file', uploadFile);
 
         const res = await fetch('/api/admin/upload', {
           method: 'POST',
@@ -101,8 +106,8 @@ export default function MediaPage() {
             url: uploadData.data.url,
             publicId: uploadData.data.publicId || '',
             filename: file.name,
-            fileSize: compressed.size,
-            fileType: compressed.type,
+            fileSize: uploadData.data.fileSize || uploadFile.size,
+            fileType: uploadData.data.format ? `image/${uploadData.data.format}` : uploadFile.type,
             width: uploadData.data.width || 0,
             height: uploadData.data.height || 0,
           }),

@@ -390,9 +390,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       />
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-4">
-        {/* Top Leaderboard Ad Banner (e.g. SUPER BOARD reference) */}
-        <section aria-label="বিজ্ঞাপন" className="mb-6">
-          {headerAd?.imageUrl ? (
+        {/* Top Leaderboard Ad Banner */}
+        {headerAd?.imageUrl && (
+          <section aria-label="বিজ্ঞাপন" className="mb-6">
             <a
               href={headerAd.link || '#'}
               target="_blank"
@@ -408,32 +408,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 unoptimized
               />
             </a>
-          ) : (
-            <div className="relative overflow-hidden rounded-md border border-emerald-700/30 bg-gradient-to-r from-emerald-900 via-emerald-800 to-green-900 px-4 py-3 sm:px-8 sm:py-4 text-white shadow-xs">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-4">
-                  <span className="bg-amber-400 text-emerald-950 font-black text-xs px-2.5 py-1 rounded-sm uppercase tracking-wider shadow-xs">
-                    SUPER BOARD
-                  </span>
-                  <div>
-                    <span className="text-xs sm:text-sm text-emerald-200 block">বাংলাদেশে সর্বপ্রথম ও একমাত্র</span>
-                    <strong className="text-base sm:text-lg text-white font-bold tracking-wide">
-                      ই-জিরো (E0) পণ্য
-                    </strong>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-emerald-200/80 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/40">
-                    স্পনসরড
-                  </span>
-                  <span className="hidden md:inline-block text-xs font-semibold text-amber-300 hover:text-white transition-colors cursor-pointer">
-                    বিস্তারিত জানুন →
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Category Heading & Subcategories Bar (Exact Dhaka Post Reference) */}
         <header className="mb-6">
@@ -744,9 +720,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
             {/* Right Column Sidebar (30% Width - Exactly Matching Reference) */}
             <aside className="lg:col-span-4 flex flex-col gap-6">
-              {/* Sidebar Display Ad (Clean Master style reference) */}
-              <div className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
-                {sidebarAd?.imageUrl ? (
+              {/* Sidebar Display Ad */}
+              {sidebarAd?.imageUrl && (
+                <div className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                   <a
                     href={sidebarAd.link || '#'}
                     target="_blank"
@@ -762,32 +738,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       unoptimized
                     />
                     <span className="absolute top-1.5 right-1.5 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                      Ad
-                    </span>
-                  </a>
-                ) : (
-                  <div className="p-4 bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 text-white relative">
-                    <span className="absolute top-2 right-2 bg-black/40 text-white text-[10px] px-1.5 py-0.5 rounded">
                       বিজ্ঞাপন
                     </span>
-                    <span className="text-xs font-bold text-amber-200 uppercase tracking-wider block">
-                      এখন আরও শক্তিশালী
-                    </span>
-                    <strong className="text-xl sm:text-2xl font-black block mt-1 tracking-tight">
-                      ক্লিন মাস্টার
-                    </strong>
-                    <p className="text-xs text-sky-100 mt-1 max-w-[200px]">
-                      লিকুইড টয়লেট ক্লিনার • ৯৯.৯% জীবাণু ধ্বংস করে
-                    </p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="bg-amber-400 text-sky-950 font-black text-xs px-3 py-1.5 rounded-full shadow-xs">
-                        সবচেয়ে Safe Clean
-                      </span>
-                      <span className="text-[11px] text-sky-100 font-semibold">২টি সাইজে পাওয়া যাচ্ছে</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  </a>
+                </div>
+              )}
 
               {/* "সর্বশেষ" Widget (Latest News with Thumbnails) */}
               <div className="bg-white dark:bg-slate-900 rounded-md p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs">
@@ -907,9 +862,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           </div>
         )}
 
-        {/* Bottom Horizontal Advertisement Banner (Fresh Mustard Oil style reference) */}
-        <section aria-label="বিজ্ঞাপন" className="mt-10 mb-8">
-          {betweenAd?.imageUrl ? (
+        {/* Bottom Horizontal Advertisement Banner */}
+        {betweenAd?.imageUrl && (
+          <section aria-label="বিজ্ঞাপন" className="mt-10 mb-8">
             <a
               href={betweenAd.link || '#'}
               target="_blank"
@@ -925,33 +880,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 unoptimized
               />
             </a>
-          ) : (
-            <div className="relative overflow-hidden rounded-md border border-amber-300/40 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-950/40 dark:via-yellow-950/20 dark:to-amber-950/40 p-4 sm:p-5 shadow-xs">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 tracking-tight">
-                    ফ্রেশ
-                  </span>
-                  <strong className="text-lg sm:text-2xl font-extrabold text-amber-950 dark:text-amber-100">
-                    সরিষার তেল
-                  </strong>
-                  <span className="hidden md:inline-block text-slate-400">•</span>
-                  <span className="hidden md:inline-block text-base sm:text-xl font-bold text-amber-800 dark:text-amber-300 italic">
-                    বাংলার সেই স্বাদ
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-500 bg-white/70 dark:bg-black/40 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                    বিজ্ঞাপন
-                  </span>
-                  <span className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer">
-                    অর্ডার করুন →
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
+          </section>
+        )}
       </div>
 
       {/* Site Footer */}

@@ -46,8 +46,8 @@ export function ImageUploader({
   const { error: toastError, success: toastSuccess } = useToast();
 
   async function handleFile(file: File) {
-    if (!file.type.startsWith('image/')) {
-      toastError('Please choose a valid image file (JPEG, PNG, WebP).');
+    if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|gif|svg|avif|heic|tiff|bmp|ico)$/i)) {
+      toastError('দয়া করে একটি ইমেজ ফাইল নির্বাচন করুন (Please choose an image file).');
       return;
     }
 
@@ -55,13 +55,18 @@ export function ImageUploader({
       setIsUploading(true);
       setProgress(20);
 
-      // 1. Client-side compression
-      const compressed = await compressImage(file, 2000, 0.85);
+      // 1. Try client-side compression, fallback to original if unsupported/failed
+      let uploadFile = file;
+      try {
+        uploadFile = await compressImage(file, 2500, 0.90);
+      } catch {
+        uploadFile = file;
+      }
       setProgress(40);
 
       // 2. Upload to server upload endpoint
       const formData = new FormData();
-      formData.append('file', compressed);
+      formData.append('file', uploadFile);
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
@@ -88,8 +93,8 @@ export function ImageUploader({
           url: uploadedUrl,
           publicId,
           filename: file.name,
-          fileSize: compressed.size,
-          fileType: compressed.type,
+          fileSize: data.data.fileSize || uploadFile.size,
+          fileType: data.data.format ? `image/${data.data.format}` : uploadFile.type,
           width: data.data.width || 0,
           height: data.data.height || 0,
         }),

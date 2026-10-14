@@ -20,6 +20,10 @@ type PostLike = {
   publishedAt?: string | Date;
   createdAt?: string | Date;
   views?: number;
+  isBreaking?: boolean;
+  isFeatured?: boolean;
+  isTrending?: boolean;
+  homePosition?: number | null;
 };
 
 type StoryItem = {
@@ -45,6 +49,9 @@ type HomePageClientProps = {
   latestPosts?: PostLike[];
   popularPosts?: PostLike[];
   opinionPosts?: PostLike[];
+  breakingPosts?: PostLike[];
+  trendingPosts?: PostLike[];
+  ads?: Record<string, { imageUrl?: string; link?: string; position?: string; key?: string; sizeHint?: string }>;
 };
 
 const FALLBACK_CATEGORIES: string[] = [
@@ -163,6 +170,9 @@ export default function HomePageClient({
   latestPosts = [],
   popularPosts = [],
   opinionPosts = [],
+  breakingPosts = [],
+  trendingPosts = [],
+  ads = {},
 }: HomePageClientProps) {
   const [activeCategory, setActiveCategory] = useState("সর্বশেষ");
   const [activeTab, setActiveTab] = useState("সর্বশেষ");
@@ -203,8 +213,17 @@ export default function HomePageClient({
     return posts.map((post, index) => toStoryItem(post, index, nowMs));
   }, [latestPosts, nowMs]);
 
+  // Featured stories sorted by homePosition (1, 2, 3...) first, then newest
   const featuredStories = useMemo<StoryItem[]>(() => {
-    const posts = Array.isArray(featuredPosts) ? featuredPosts : [];
+    const posts = Array.isArray(featuredPosts) ? [...featuredPosts] : [];
+    posts.sort((a, b) => {
+      const posA = typeof a?.homePosition === 'number' && a.homePosition > 0 ? a.homePosition : 9999;
+      const posB = typeof b?.homePosition === 'number' && b.homePosition > 0 ? b.homePosition : 9999;
+      if (posA !== posB) return posA - posB;
+      const timeA = new Date(a?.publishedAt || a?.createdAt || 0).getTime();
+      const timeB = new Date(b?.publishedAt || b?.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
     return posts.map((post, index) => toStoryItem(post, index, nowMs));
   }, [featuredPosts, nowMs]);
 
@@ -260,10 +279,33 @@ export default function HomePageClient({
     allStories[0] ||
     leadStory;
 
+  const headerAd = ads?.['header-below'];
+  const sidebarAd = ads?.['sidebar'];
+  const betweenSectionsAd = ads?.['between-sections'];
+
+  const sidebarStories = useMemo(() => {
+    const excludeIds = new Set([leadStory.id, opinionStory.id]);
+    const filtered = allStories.filter((s) => !excludeIds.has(s.id));
+    return filtered.slice(0, 3);
+  }, [allStories, leadStory.id, opinionStory.id]);
+
   const sortedPopular = useMemo<StoryItem[]>(() => {
+    const rawTrending = Array.isArray(trendingPosts) ? trendingPosts : [];
+    const trendingItems = rawTrending.map((p, idx) => toStoryItem(p, idx, nowMs));
+
     const posts = popularStories.length ? popularStories : allStories;
-    return [...posts].sort((a, b) => (Number(b.views || 0) || 0) - (Number(a.views || 0) || 0));
-  }, [allStories, popularStories]);
+    const sortedByViews = [...posts].sort((a, b) => (Number(b.views || 0) || 0) - (Number(a.views || 0) || 0));
+
+    const seen = new Set<string>();
+    const combined: StoryItem[] = [];
+    for (const item of [...trendingItems, ...sortedByViews]) {
+      if (!seen.has(item.id)) {
+        seen.add(item.id);
+        combined.push(item);
+      }
+    }
+    return combined;
+  }, [allStories, popularStories, trendingPosts, nowMs]);
 
   function selectCategory(category: string) {
     setActiveCategory(category);
@@ -277,6 +319,55 @@ export default function HomePageClient({
       );
   }, [navCategories]);
 
+  const breakingList = useMemo(() => {
+    const explicitBreaking = Array.isArray(breakingPosts) && breakingPosts.length > 0 ? breakingPosts : [];
+    const otherCandidates = [
+      ...(Array.isArray(latestPosts) ? latestPosts : []),
+      ...(Array.isArray(featuredPosts) ? featuredPosts : []),
+    ].filter((p) => p?.isBreaking);
+
+    const merged = [...explicitBreaking, ...otherCandidates];
+    const seen = new Set<string>();
+    const uniqueBreaking: StoryItem[] = [];
+
+    for (const post of merged) {
+      const item = toStoryItem(post, uniqueBreaking.length, nowMs);
+      if (item.title && !seen.has(item.title)) {
+        seen.add(item.title);
+        uniqueBreaking.push(item);
+      }
+    }
+
+    let selectedStories = uniqueBreaking;
+    if (selectedStories.length === 0) {
+      selectedStories = allStories.slice(0, 10);
+    }
+
+    if (selectedStories.length > 0) {
+      return selectedStories.map((story) => ({
+        id: story.id,
+        title: story.title,
+        url: getStoryUrl(story),
+      }));
+    }
+
+    return [
+      { id: "f1", title: "যমুনা নদীর পানি বৃদ্ধি পেয়ে নিম্নাঞ্চল প্লাবিত, পানিবন্দি হাজারো পরিবার", url: "#" },
+      { id: "f2", title: "সারাদেশে বিদ্যুৎ ও জ্বালানি সাশ্রয়ে নতুন সমন্বিত কর্মপরিকল্পনা গ্রহণ", url: "#" },
+      { id: "f3", title: "রপ্তানি আয়ে নতুন মাইলফলক, প্রবাসী আয়ে ইতিবাচক প্রবৃদ্ধি অব্যাহত", url: "#" },
+      { id: "f4", title: "যশোরে বিশেষ অভিযানে বিপুল পরিমাণ চোরাচালান পণ্য ও মাদক উদ্ধার", url: "#" },
+      { id: "f5", title: "চলতি সপ্তাহে সারাদেশে হালকা থেকে মাঝারি বৃষ্টিপাতের পূর্বাভাস", url: "#" },
+    ];
+  }, [breakingPosts, allStories, latestPosts, featuredPosts, nowMs]);
+
+  const displayBreakingList = useMemo(() => {
+    let list = breakingList;
+    while (list.length > 0 && list.length < 8) {
+      list = [...list, ...breakingList];
+    }
+    return list;
+  }, [breakingList]);
+
   return (
     <main className="portal">
       <ArticleSiteHeader
@@ -288,24 +379,53 @@ export default function HomePageClient({
       />
 
       <div className="page-shell" id="top">
-        <section className="breaking-news" aria-label="ব্রেকিং নিউজ">
-          <span className="breaking-label"><i /> ব্রেকিং</span>
-          <span className="breaking-text">
-            {(trendingKeywords && trendingKeywords[0]) || "রাজনীতি"} নিয়ে আজকের গুরুত্বপূর্ণ আপডেট এখন অনলাইনে
-          </span>
-          <span className="breaking-time">সর্বশেষ আপডেট</span>
+        <section className="breaking-news" aria-label="সংবাদ শিরোনাম">
+          <div className="breaking-label">
+            সংবাদ শিরোনাম ::
+          </div>
+          <div className="breaking-ticker-wrap">
+            <div className="breaking-track">
+              {[...displayBreakingList, ...displayBreakingList].map((item, idx) => (
+                <span key={`${item.id}-${idx}`} className="breaking-item">
+                  <span className="breaking-bullet" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                      <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+                      <path
+                        d="M11.5 6.5L8 10L11.5 13.5"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <Link href={item.url} className="breaking-link">
+                    {item.title}
+                  </Link>
+                </span>
+              ))}
+            </div>
+          </div>
         </section>
 
-        <div className="ad-leaderboard" aria-label="বিজ্ঞাপন">
-          <span className="ad-kicker">স্পনসরড</span>
-          <div>
-            <strong>{siteName}</strong>
-            <span>দৈনিক খবর, একই সঙ্গে ভরসা</span>
+        {headerAd?.imageUrl ? (
+          <div className="ad-leaderboard dynamic-ad" aria-label="বিজ্ঞাপন">
+            <a
+              href={headerAd.link || "#"}
+              target={headerAd.link && headerAd.link !== "#" ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+              className="ad-link-wrap"
+            >
+              <img
+                src={headerAd.imageUrl}
+                alt="বিজ্ঞাপন"
+                className="ad-image-responsive"
+                loading="lazy"
+              />
+              <span className="ad-kicker">বিজ্ঞাপন</span>
+            </a>
           </div>
-          <span className="ad-cta">আরও জানুন <b>↗</b></span>
-          <span className="ad-orbit orbit-one" />
-          <span className="ad-orbit orbit-two" />
-        </div>
+        ) : null}
 
         <section className="top-grid" aria-label="প্রধান সংবাদ">
           <div className="lead-story">
@@ -335,15 +455,46 @@ export default function HomePageClient({
           </div>
 
           <aside className="top-sidebar">
-            <div className="sponsor-card">
-              <span className="sponsor-label">আজকের বিশেষ</span>
-              <div className="sponsor-art">
-                <span>নতুন দিন,</span>
-                <strong>নতুন সম্ভাবনা</strong>
-                <small>প্রতিটি মুহূর্তে থাকুন সতেজ</small>
+            {sidebarAd?.imageUrl ? (
+              <div className="sponsor-card dynamic-ad" aria-label="বিজ্ঞাপন">
+                <a
+                  href={sidebarAd.link || "#"}
+                  target={sidebarAd.link && sidebarAd.link !== "#" ? "_blank" : "_self"}
+                  rel="noopener noreferrer"
+                  className="sponsor-ad-link"
+                >
+                  <img
+                    src={sidebarAd.imageUrl}
+                    alt="বিজ্ঞাপন"
+                    className="sponsor-ad-img"
+                    loading="lazy"
+                  />
+                  <span className="sponsor-label">বিজ্ঞাপন</span>
+                </a>
               </div>
-              <a href="#footer">আরও জানুন <span aria-hidden="true">↗</span></a>
-            </div>
+            ) : (
+              <div className="top-sidebar-news-card">
+                <div className="section-heading compact-heading">
+                  <h2>সর্বশেষ সংবাদ</h2>
+                  <a href="#news-feed" className="compact-more-link">
+                    আরও <span aria-hidden="true">→</span>
+                  </a>
+                </div>
+                <div className="top-sidebar-news-list">
+                  {sidebarStories.map((story, idx) => (
+                    <Link
+                      key={story.id || idx}
+                      href={getStoryUrl(story)}
+                      className="top-sidebar-news-item"
+                    >
+                      <span className="sidebar-news-category">{story.category}</span>
+                      <h3 className="sidebar-news-title">{story.title}</h3>
+                      <span className="sidebar-news-time">{story.time}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="opinion-card">
               <div className="section-heading compact-heading">
                 <h2>মতামত</h2>
@@ -380,15 +531,24 @@ export default function HomePageClient({
           ))}
         </section>
 
-        <div className="ad-banner" aria-label="বিজ্ঞাপন">
-          <div className="ad-airline">WEEKLY <strong>GETAWAY</strong></div>
-          <div className="ad-banner-copy">
-            <span>দূরের পথে</span>
-            <strong>এবার একটু নিজের মতো</strong>
+        {betweenSectionsAd?.imageUrl ? (
+          <div className="ad-banner dynamic-ad" aria-label="বিজ্ঞাপন">
+            <a
+              href={betweenSectionsAd.link || "#"}
+              target={betweenSectionsAd.link && betweenSectionsAd.link !== "#" ? "_blank" : "_self"}
+              rel="noopener noreferrer"
+              className="ad-banner-link-wrap"
+            >
+              <img
+                src={betweenSectionsAd.imageUrl}
+                alt="বিজ্ঞাপন"
+                className="ad-banner-img"
+                loading="lazy"
+              />
+              <span className="ad-small-label">বিজ্ঞাপন</span>
+            </a>
           </div>
-          <span className="ad-banner-link">পরিকল্পনা করুন <b>↗</b></span>
-          <span className="ad-small-label">বিজ্ঞাপন</span>
-        </div>
+        ) : null}
 
         <section className="news-layout" id="news-feed">
           <div className="feed-column">

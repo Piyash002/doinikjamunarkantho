@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAuthSession, apiSuccess, apiError } from '@/src/lib/apiResponse';
-import cloudinary from '@/src/lib/cloudinary';
+import cloudinary, { configureCloudinary, isCloudinaryConfigured } from '@/src/lib/cloudinary';
 
 export const runtime = 'nodejs';
 
@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
     const { publicId } = body;
     if (!publicId) return apiError('Public ID is required.', 400);
 
-    if (process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    configureCloudinary();
+    if (isCloudinaryConfigured() && !publicId.startsWith('local-')) {
       await cloudinary.uploader.destroy(publicId);
     }
 

@@ -5,14 +5,27 @@ import Post from '@/src/models/Post';
 export async function getHomeData() {
   await connectToDatabase();
 
-  const [categories, featured, latest, trending] = await Promise.all([
+  const [categories, featured, latest, trending, breaking] = await Promise.all([
     Category.find({ isActive: true }).sort({ order: 1 }).lean(),
-    Post.find({ status: 'published', isDeleted: false, isFeatured: true }).sort({ publishedAt: -1 }).limit(6).lean(),
-    Post.find({ status: 'published', isDeleted: false }).sort({ publishedAt: -1 }).limit(12).lean(),
-    Post.find({ status: 'published', isDeleted: false, isTrending: true }).sort({ publishedAt: -1 }).limit(6).lean(),
+    Post.find({ status: 'published', isDeleted: false, isFeatured: true })
+      .sort({ homePosition: 1, publishedAt: -1, createdAt: -1 })
+      .limit(10)
+      .lean(),
+    Post.find({ status: 'published', isDeleted: false })
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(24)
+      .lean(),
+    Post.find({ status: 'published', isDeleted: false, isTrending: true })
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(10)
+      .lean(),
+    Post.find({ status: 'published', isDeleted: false, isBreaking: true })
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(10)
+      .lean(),
   ]);
 
-  return { categories, featured, latest, trending };
+  return { categories, featured, latest, trending, breaking };
 }
 
 export async function getPostsByCategory(categorySlug, page = 1, limit = 12) {

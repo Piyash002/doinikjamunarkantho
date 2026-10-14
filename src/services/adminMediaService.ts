@@ -1,7 +1,7 @@
 import { connectToDatabase } from '@/src/lib/db';
 import Media from '@/src/models/Media';
 import Post from '@/src/models/Post';
-import cloudinary from '@/src/lib/cloudinary';
+import cloudinary, { configureCloudinary, isCloudinaryConfigured } from '@/src/lib/cloudinary';
 import { logActivity } from './adminAuditService';
 import type { AdminUserSession } from './adminPostService';
 
@@ -123,7 +123,8 @@ export async function deleteMediaItem(id: string, session: AdminUserSession) {
   }
 
   // If publicId exists and Cloudinary is configured, try deleting from Cloudinary
-  if (media.publicId && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  configureCloudinary();
+  if (media.publicId && !media.publicId.startsWith('local-') && isCloudinaryConfigured()) {
     try {
       await cloudinary.uploader.destroy(media.publicId);
     } catch (err) {
