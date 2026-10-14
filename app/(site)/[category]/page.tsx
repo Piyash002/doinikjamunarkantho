@@ -87,8 +87,11 @@ function parseKickerAndTitle(
   return { kicker: '', title: trimmed };
 }
 
-function routeFor(categorySlug: string, postSlug: string): string {
-  return `/${encodeURIComponent(categorySlug)}/${encodeURIComponent(postSlug)}`;
+function routeFor(categorySlug: string, postOrIdOrSlug: any): string {
+  const idOrSlug = typeof postOrIdOrSlug === 'object' && postOrIdOrSlug !== null
+    ? String(postOrIdOrSlug._id || postOrIdOrSlug.slug)
+    : String(postOrIdOrSlug);
+  return `/${encodeURIComponent(categorySlug)}/${encodeURIComponent(idOrSlug)}`;
 }
 
 const FALLBACK_IMAGE =
@@ -488,7 +491,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       leadStory.subCategory,
                       leadStory.lead
                     );
-                    const leadUrl = routeFor(leadStory.category || canonicalSlug, leadStory.slug);
+                    const leadUrl = routeFor(leadStory.category || canonicalSlug, leadStory._id || leadStory.slug);
                     const imageUrl = leadStory.featuredImage?.url || FALLBACK_IMAGE;
 
                     return (
@@ -549,7 +552,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                         story.subCategory,
                         story.lead
                       );
-                      const storyUrl = routeFor(story.category || canonicalSlug, story.slug);
+                      const storyUrl = routeFor(story.category || canonicalSlug, story._id || story.slug);
                       const imageUrl = story.featuredImage?.url || FALLBACK_IMAGE;
 
                       return (
@@ -612,7 +615,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                         story.subCategory,
                         story.lead
                       );
-                      const storyUrl = routeFor(story.category || canonicalSlug, story.slug);
+                      const storyUrl = routeFor(story.category || canonicalSlug, story._id || story.slug);
                       const imageUrl = story.featuredImage?.url || FALLBACK_IMAGE;
 
                       return (
@@ -766,7 +769,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       item.subCategory,
                       item.lead
                     );
-                    const itemUrl = routeFor(item.category || 'national', item.slug);
+                    const itemUrl = routeFor(item.category || 'national', item._id || item.slug);
                     const itemImg = item.featuredImage?.url || FALLBACK_IMAGE;
 
                     return (
@@ -817,7 +820,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
                   <ol className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/80">
                     {popularPosts.map((item, idx) => {
-                      const itemUrl = routeFor(item.category || 'national', item.slug);
+                      const itemUrl = routeFor(item.category || 'national', item._id || item.slug);
                       const badgeNumbers = ['০১', '০২', '০৩', '০৪', '০৫'];
 
                       return (
@@ -933,7 +936,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               {settings?.phone && (
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                   <span className="font-semibold text-slate-700 dark:text-slate-300">মোবাইল:</span>{" "}
-                  <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`} className="hover:underline">{settings.phone}</a>
+                  <a href={`tel:${String(settings.phone).replace(/[০-৯]/g, (d) => String(["০","১","২","৩","৪","৫","৬","৭","৮","৯"].indexOf(d))).replace(/[^0-9+]/g, "")}`} className="hover:underline">{settings.phone}</a>
                 </p>
               )}
               {settings?.email && (

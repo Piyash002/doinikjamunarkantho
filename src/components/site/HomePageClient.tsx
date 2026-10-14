@@ -154,17 +154,19 @@ function getStoryTitle(post: PostLike | null | undefined) {
 }
 
 function getStoryUrl(story: StoryItem) {
-  if (!story.slug || !story.categorySlug) return "#news-feed";
-  return `/${encodeURIComponent(story.categorySlug)}/${encodeURIComponent(story.slug)}`;
+  const uniqueId = story.id || story.slug;
+  if (!uniqueId || !story.categorySlug) return "#news-feed";
+  return `/${encodeURIComponent(story.categorySlug)}/${encodeURIComponent(uniqueId)}`;
 }
 
 function toStoryItem(post: PostLike | null | undefined, index = 0, nowValue?: number | null): StoryItem {
   const category = getCategoryName(post?.category || post?.categoryName || "");
   const categorySlug =
     typeof post?.category === "string" ? post.category : post?.category?.slug || "";
+  const uniqueId = post?._id ? String(post._id) : (post?.slug || `story-${index}`);
   return {
-    id: post?._id || post?.slug || `story-${index}`,
-    slug: post?.slug || "",
+    id: uniqueId,
+    slug: post?.slug || uniqueId,
     categorySlug,
     category,
     title: getStoryTitle(post),
@@ -741,7 +743,7 @@ export default function HomePageClient({
               </p>
               <p className="footer-contact-item">
                 <span className="contact-label">মোবাইল:</span>{" "}
-                <a href={`tel:${phone.replace(/[^0-9+]/g, "")}`}>{phone}</a>
+                <a href={`tel:${toEnglishPhone(phone)}`}>{phone}</a>
               </p>
               <p className="footer-contact-item">
                 <span className="contact-label">ইমেইল:</span>{" "}
@@ -760,7 +762,7 @@ export default function HomePageClient({
             <div className="footer-bottom-contact">
               <span>অফিস: {footerAddress}</span>
               <i aria-hidden="true" />
-              <span>মোবাইল: <a href={`tel:${phone.replace(/[^0-9+]/g, "")}`}>{phone}</a></span>
+              <span>মোবাইল: <a href={`tel:${toEnglishPhone(phone)}`}>{phone}</a></span>
               <i aria-hidden="true" />
               <span>ইমেইল: <a href={`mailto:${email}`}>{email}</a></span>
             </div>

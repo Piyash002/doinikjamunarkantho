@@ -58,8 +58,11 @@ function formatBanglaDateTime(dateValue?: string | Date | null): string {
   return `${dateStr}, ${timeStr}`;
 }
 
-function routeFor(categorySlug: string, postSlug: string): string {
-  return `/${encodeURIComponent(categorySlug)}/${encodeURIComponent(postSlug)}`;
+function routeFor(categorySlug: string, postOrIdOrSlug: any): string {
+  const idOrSlug = typeof postOrIdOrSlug === 'object' && postOrIdOrSlug !== null
+    ? String(postOrIdOrSlug._id || postOrIdOrSlug.slug)
+    : String(postOrIdOrSlug);
+  return `/${encodeURIComponent(categorySlug)}/${encodeURIComponent(idOrSlug)}`;
 }
 
 const FALLBACK_IMAGE =
@@ -279,7 +282,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
             {/* Left Column: Topic Articles List (Matching Screenshot 3) */}
             <main className="lg:col-span-8 flex flex-col divide-y divide-slate-200 dark:divide-slate-800">
               {posts.map((story) => {
-                const storyUrl = routeFor(story.category || 'national', story.slug);
+                const storyUrl = routeFor(story.category || 'national', story._id || story.slug);
                 const imageUrl = story.featuredImage?.url || FALLBACK_IMAGE;
 
                 return (
@@ -394,7 +397,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
 
                 <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/80">
                   {latestPosts.map((item) => {
-                    const itemUrl = routeFor(item.category || 'national', item.slug);
+                    const itemUrl = routeFor(item.category || 'national', item._id || item.slug);
                     const itemImg = item.featuredImage?.url || FALLBACK_IMAGE;
 
                     return (

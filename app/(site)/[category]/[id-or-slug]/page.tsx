@@ -49,8 +49,11 @@ function encodeSegment(value: string) {
   return encodeURIComponent(value);
 }
 
-function routeFor(categorySlug: string, postSlug: string) {
-  return `/${encodeSegment(categorySlug)}/${encodeSegment(postSlug)}`;
+function routeFor(categorySlug: string, postOrIdOrSlug: any) {
+  const idOrSlug = typeof postOrIdOrSlug === 'object' && postOrIdOrSlug !== null
+    ? String(postOrIdOrSlug._id || postOrIdOrSlug.slug)
+    : String(postOrIdOrSlug);
+  return `/${encodeSegment(categorySlug)}/${encodeSegment(idOrSlug)}`;
 }
 
 function routeForHomeCategory(categorySlug: string) {
@@ -260,12 +263,12 @@ function NewsListItem({
   index?: number;
   showIndex?: boolean;
 }) {
-  const slug = String(post.slug || "");
+  const postUniqueId = String(post._id || post.slug || "");
   const categorySlug = String(post.category || "");
   return (
     <li className={`article-news-list-item${showIndex ? " with-index" : ""}`}>
       {showIndex && <span className="article-news-index">{["০১", "০২", "০৩"][index || 0]}</span>}
-      <Link className="article-news-list-title" href={routeFor(categorySlug, slug)}>{post.title}</Link>
+      <Link className="article-news-list-title" href={routeFor(categorySlug, postUniqueId)}>{post.title}</Link>
       {post.featuredImage?.url && (
         <Image
           alt=""
@@ -292,7 +295,8 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
   const { post, category } = result;
   const categorySlug = category?.slug || String(post.category);
-  const canonical = routeFor(categorySlug, post.slug);
+  const postUniqueId = String(post._id || post.slug);
+  const canonical = routeFor(categorySlug, postUniqueId);
   const image = post.featuredImage?.url;
   const title = post.seo?.title || post.title;
   const description = post.seo?.description || toPlainText(post.excerpt || post.content || post.title);
@@ -330,8 +334,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   if (!result) notFound();
 
   const canonicalCategory = result.category?.slug || String(result.post.category);
-  if (requestedCategory !== canonicalCategory) {
-    permanentRedirect(routeFor(canonicalCategory, result.post.slug));
+  const postUniqueId = String(result.post._id || result.post.slug);
+  if (requestedCategory !== canonicalCategory || slug !== postUniqueId) {
+    permanentRedirect(routeFor(canonicalCategory, postUniqueId));
   }
 
   await connectToDatabase();
@@ -358,7 +363,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     articleHtml = insertArticleAd(articleHtml, ads["in-article"], 4);
   }
   const categoryName = category?.name_bn || canonicalCategory;
-  const canonicalPath = routeFor(canonicalCategory, post.slug);
+  const canonicalPath = routeFor(canonicalCategory, postUniqueId);
   const canonicalUrl = new URL(canonicalPath, getSiteOrigin()).toString();
 
   const newsArticleSchema = {
@@ -606,12 +611,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             <nav aria-label="আগের ও পরের খবর" className="article-prev-next">
               {previous ? (
-                <Link href={routeFor(String(previous.category), String(previous.slug))}>
+                <Link href={routeFor(String(previous.category), String(previous._id || previous.slug))}>
                   <span>← আগের খবর</span><strong>{previous.title}</strong>
                 </Link>
               ) : <span />}
               {next ? (
-                <Link href={routeFor(String(next.category), String(next.slug))}>
+                <Link href={routeFor(String(next.category), String(next._id || next.slug))}>
                   <span>পরের খবর →</span><strong>{next.title}</strong>
                 </Link>
               ) : <span />}
@@ -644,7 +649,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <ol>
                 {related.slice(0, 2).map((item: ArticleListPost) => (
                   <li key={String(item._id)}>
-                    <Link href={routeFor(String(item.category), String(item.slug))}>{item.title}</Link>
+                    <Link href={routeFor(String(item.category), String(item._id || item.slug))}>{item.title}</Link>
                   </li>
                 ))}
               </ol>
@@ -654,7 +659,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <ol start={3}>
                 {related.slice(2, 4).map((item: ArticleListPost) => (
                   <li key={String(item._id)}>
-                    <Link href={routeFor(String(item.category), String(item.slug))}>{item.title}</Link>
+                    <Link href={routeFor(String(item.category), String(item._id || item.slug))}>{item.title}</Link>
                   </li>
                 ))}
               </ol>
@@ -680,7 +685,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </nav>
           <address className="article-footer-contact">
             {settings?.footerAddress && <span>অফিস: {settings.footerAddress}</span>}
-            {settings?.phone && <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}>মোবাইল: {settings.phone}</a>}
+            {settings?.phone && <a href={`tel:${String(settings.phone).replace(/[০-৯]/g, (d) => String(["০","১","২","৩","৪","৫","৬","৭","৮","৯"].indexOf(d))).replace(/[^0-9+]/g, "")}`}>মোবাইল: {settings.phone}</a>}
             {settings?.email && <a href={`mailto:${settings.email}`}>ইমেইল: {settings.email}</a>}
           </address>
           <p className="article-footer-copyright">

@@ -39,7 +39,12 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       return NextResponse.json({ error: "Post not found." }, { status: 404 });
     }
 
-    revalidatePath(`/${encodeURIComponent(post.category)}/${encodeURIComponent(post.slug)}`);
+    if (post._id) {
+      revalidatePath(`/${encodeURIComponent(post.category)}/${encodeURIComponent(String(post._id))}`);
+    }
+    if (post.slug) {
+      revalidatePath(`/${encodeURIComponent(post.category)}/${encodeURIComponent(post.slug)}`);
+    }
     const response = NextResponse.json({ counted: true, shareCount: post.shareCount });
     response.cookies.set(cookieName, "1", {
       httpOnly: true,

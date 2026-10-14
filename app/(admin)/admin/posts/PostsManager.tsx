@@ -364,7 +364,7 @@ export default function PostsManager() {
 
               {post.status === 'published' && (
                 <Link
-                  href={`/${encodeURIComponent(post.category || 'general')}/${encodeURIComponent(post.slug)}`}
+                  href={`/${encodeURIComponent(post.category || 'general')}/${encodeURIComponent(post._id || post.slug)}`}
                   target="_blank"
                   className="p-1.5 rounded-lg text-slate-500 hover:text-sky-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   title="View on Public Site"

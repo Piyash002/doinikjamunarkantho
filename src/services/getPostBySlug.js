@@ -11,12 +11,16 @@ const ARTICLE_AD_POSITIONS = ['in-article', 'article-sidebar-top', 'article-side
 export async function getPostBySlug(slug, previewToken = null) {
   await connectToDatabase();
 
-  let post = await Post.findOne({ slug, isDeleted: false, status: 'published' }).lean();
+  const idOrSlugFilter = mongoose.isValidObjectId(slug)
+    ? { $or: [{ _id: slug }, { slug }] }
+    : { slug };
+
+  let post = await Post.findOne({ ...idOrSlugFilter, isDeleted: false, status: 'published' }).lean();
 
   // Lazy publication fallback: check if scheduled post is due now
   if (!post) {
     const scheduledDue = await Post.findOne({
-      slug,
+      ...idOrSlugFilter,
       isDeleted: false,
       status: 'scheduled',
       publishedAt: { $lte: new Date() },
@@ -30,7 +34,7 @@ export async function getPostBySlug(slug, previewToken = null) {
 
   // Allow preview token for draft previewing
   if (!post && previewToken) {
-    const previewPost = await Post.findOne({ slug, isDeleted: false }).lean();
+    const previewPost = await Post.findOne({ ...idOrSlugFilter, isDeleted: false }).lean();
     if (previewPost) {
       post = previewPost;
     }

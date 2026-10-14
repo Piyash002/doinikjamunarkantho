@@ -136,7 +136,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post: any) => {
               const catSlug = post.category || 'all';
-              const articleHref = `/${encodeURIComponent(catSlug)}/${encodeURIComponent(post.slug)}`;
+              const articleHref = `/${encodeURIComponent(catSlug)}/${encodeURIComponent(String(post._id || post.slug))}`;
               const postImage = post.featuredImage?.url || '/logo.png';
               return (
                 <article

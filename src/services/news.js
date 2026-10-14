@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { connectToDatabase } from '@/src/lib/db';
 import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
@@ -49,7 +50,10 @@ export async function getPostsByCategory(categorySlug, page = 1, limit = 12) {
 
 export async function getPostBySlug(slug) {
   await connectToDatabase();
-  const post = await Post.findOne({ slug, status: 'published', isDeleted: false }).lean();
+  const filter = mongoose.isValidObjectId(slug)
+    ? { $or: [{ _id: slug }, { slug }], status: 'published', isDeleted: false }
+    : { slug, status: 'published', isDeleted: false };
+  const post = await Post.findOne(filter).lean();
   return post;
 }
 
@@ -63,14 +67,16 @@ export async function getPopularPosts(limit = 8) {
   return Post.find({ status: 'published', isDeleted: false }).sort({ views: -1, publishedAt: -1 }).limit(limit).lean();
 }
 
-export async function getRelatedPosts(category, currentSlug, limit = 4) {
+export async function getRelatedPosts(category, currentSlugOrId, limit = 4) {
   await connectToDatabase();
 
   const query = {
     status: 'published',
     isDeleted: false,
     category,
-    slug: { $ne: currentSlug },
+    ...(mongoose.isValidObjectId(currentSlugOrId)
+      ? { _id: { $ne: currentSlugOrId } }
+      : { slug: { $ne: currentSlugOrId } }),
   };
 
   return Post.find(query).sort({ publishedAt: -1 }).limit(limit).lean();
