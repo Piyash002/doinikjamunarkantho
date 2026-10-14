@@ -6,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import ImageExtension from '@tiptap/extension-image';
 import LinkExtension from '@tiptap/extension-link';
 import UnderlineExtension from '@tiptap/extension-underline';
-import TableExtension from '@tiptap/extension-table';
+import { Table as TableExtension } from '@tiptap/extension-table';
 import TableRowExtension from '@tiptap/extension-table-row';
 import TableHeaderExtension from '@tiptap/extension-table-header';
 import TableCellExtension from '@tiptap/extension-table-cell';
@@ -23,7 +23,7 @@ import {
   ListOrdered,
   Link as LinkIcon,
   Image as ImageIcon,
-  Youtube,
+  Video as YoutubeIcon,
   Table as TableIcon,
   RotateCcw,
   RotateCw,
@@ -274,7 +274,7 @@ export function TiptapEditor({
           aria-label="Embed YouTube Video"
           title="Embed YouTube Video"
         >
-          <Youtube className="w-4 h-4" />
+          <YoutubeIcon className="w-4 h-4" />
         </button>
 
         {/* Table */}

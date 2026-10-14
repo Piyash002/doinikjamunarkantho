@@ -40,7 +40,7 @@ import { useToast } from '../ui/Toast';
 import { useAdminAuth } from '../AdminAuthContext';
 import { TiptapEditor } from '../editor/TiptapEditor';
 import { bangladeshLocations } from '@/src/data/bangladeshLocations';
-import { generateBanglaSafeSlug } from '@/src/services/adminPostService';
+import { generateBanglaSafeSlug } from '@/src/lib/slug';
 
 export interface PostFormProps {
   initialData?: any;

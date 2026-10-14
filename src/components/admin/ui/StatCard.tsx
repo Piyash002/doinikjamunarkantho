@@ -36,7 +36,7 @@ export function StatCard({
   return (
     <div className="flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 line-clamp-1">
+        <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 line-clamp-1">
           {title}
         </span>
         {icon && (
@@ -47,7 +47,7 @@ export function StatCard({
       </div>
 
       <div className="flex items-baseline gap-2 mt-1">
-        <strong className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
+        <strong className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           {typeof value === 'number' ? new Intl.NumberFormat('en-US').format(value) : value}
         </strong>
         {trend && (
@@ -62,7 +62,7 @@ export function StatCard({
       </div>
 
       {hint && (
-        <span className="text-xs text-slate-400 dark:text-slate-500 mt-2 line-clamp-1">
+        <span className="text-xs text-slate-500 dark:text-slate-300 mt-2 line-clamp-1 font-medium">
           {hint}
         </span>
       )}

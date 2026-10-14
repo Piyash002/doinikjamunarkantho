@@ -12,7 +12,10 @@ export async function proxy(request) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get('admin_token')?.value;
+  const cookieToken = request.cookies.get('admin_token')?.value;
+  const authHeader = request.headers.get('authorization');
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = cookieToken || bearerToken;
 
   if (!process.env.AUTH_SECRET) {
     if (pathname.startsWith('/api/admin')) {

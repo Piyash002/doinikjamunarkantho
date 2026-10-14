@@ -160,7 +160,7 @@ export default function AdminDashboard() {
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
                 Reader Traffic Interest
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
                 Daily article pageviews over the last {daysRange} days
               </p>
             </div>
@@ -172,25 +172,30 @@ export default function AdminDashboard() {
               <Skeleton className="w-full h-full rounded-xl" />
             ) : stats.viewsTimeline?.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.viewsTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={stats.viewsTimeline} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#1b7d95" stopOpacity={0.4} />
                       <stop offset="95%" stopColor="#1b7d95" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.2)" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748b' }} tickLine={false} axisLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: '#64748b' }}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(val: number) => (val >= 1000 ? `${(val / 1000).toFixed(0)}k` : `${val}`)}
+                  />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#0f172a',
                       borderRadius: '12px',
-                      border: 'none',
+                      border: '1px solid #334155',
                       color: '#fff',
                       fontSize: '12px',
                     }}
-                    labelStyle={{ fontWeight: 'bold' }}
+                    labelStyle={{ fontWeight: 'bold', color: '#f8fafc' }}
                     formatter={(val: any) => [new Intl.NumberFormat('en-US').format(val), 'Views']}
                   />
                   <Area
@@ -204,7 +209,7 @@ export default function AdminDashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
+              <div className="h-full flex items-center justify-center text-xs text-slate-500 dark:text-slate-400">
                 No view data recorded yet in this timeframe.
               </div>
             )}
@@ -219,7 +224,7 @@ export default function AdminDashboard() {
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
                   Articles by Section
                 </h2>
-                <p className="text-xs text-slate-400">Published stories distribution</p>
+                <p className="text-xs text-slate-500 dark:text-slate-300">Published stories distribution</p>
               </div>
               <Link href="/admin/categories" className="text-xs font-semibold text-[#1b7d95] hover:underline">
                 View All
@@ -238,8 +243,8 @@ export default function AdminDashboard() {
                   return (
                     <div key={cat.name} className="flex flex-col gap-1">
                       <div className="flex items-center justify-between text-xs font-medium">
-                        <span className="text-slate-700 dark:text-slate-300 truncate">{cat.name}</span>
-                        <span className="text-slate-500 font-bold">{cat.count}</span>
+                        <span className="text-slate-800 dark:text-slate-200 truncate">{cat.name}</span>
+                        <span className="text-slate-600 dark:text-slate-300 font-bold">{cat.count}</span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
@@ -251,12 +256,12 @@ export default function AdminDashboard() {
                   );
                 })
               ) : (
-                <div className="py-8 text-center text-xs text-slate-400">No categories found.</div>
+                <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">No categories found.</div>
               )}
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 font-medium flex items-center justify-between">
             <span>Total Categories: {stats?.totals.totalCategories || 0}</span>
             <span>Authors: {stats?.totals.totalAuthors || 0}</span>
           </div>
@@ -275,7 +280,7 @@ export default function AdminDashboard() {
               Needs Editorial Attention
             </h2>
           </div>
-          <p className="text-xs text-slate-400 mb-4">
+          <p className="text-xs text-slate-500 dark:text-slate-300 mb-4">
             Stale drafts older than 3 days and upcoming scheduled posts
           </p>
 
@@ -316,7 +321,7 @@ export default function AdminDashboard() {
                 ))}
               </>
             ) : (
-              <div className="py-8 text-center text-xs text-slate-400">
+              <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
                 All caught up! No stale drafts or pending items.
               </div>
             )}
@@ -330,7 +335,7 @@ export default function AdminDashboard() {
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
                 Recently Edited Articles
               </h2>
-              <p className="text-xs text-slate-400">Latest activity across all desks</p>
+              <p className="text-xs text-slate-500 dark:text-slate-300">Latest activity across all desks</p>
             </div>
             <Link href="/admin/posts" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1b7d95] hover:underline">
               <span>View All</span>
@@ -351,7 +356,7 @@ export default function AdminDashboard() {
                     >
                       {post.title}
                     </Link>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
                       <span>{post.category || 'General'}</span>
                       <span>•</span>
                       <span>By {post.author || 'Desk'}</span>
@@ -382,7 +387,7 @@ export default function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <div className="py-8 text-center text-xs text-slate-400">No recent articles found.</div>
+              <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">No recent articles found.</div>
             )}
           </div>
         </div>

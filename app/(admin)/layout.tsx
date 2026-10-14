@@ -15,5 +15,14 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: LayoutProps<'/'>) {
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{var t=localStorage.getItem('admin_theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark')}else{document.documentElement.classList.remove('dark');document.documentElement.removeAttribute('data-theme')}}catch(e){}})();`,
+        }}
+      />
+      <AdminShell>{children}</AdminShell>
+    </>
+  );
 }

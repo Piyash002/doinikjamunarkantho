@@ -38,15 +38,16 @@ export function AdminTopBar({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check initial dark mode from document or storage
-    const isDarkMode =
-      document.documentElement.classList.contains('dark') ||
-      document.documentElement.getAttribute('data-theme') === 'dark' ||
-      localStorage.getItem('admin_theme') === 'dark';
+    // Default to LIGHT mode unless 'dark' was explicitly selected in localStorage
+    const savedTheme = localStorage.getItem('admin_theme');
+    const isDarkMode = savedTheme === 'dark';
     setIsDark(isDarkMode);
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
       document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.removeAttribute('data-theme');
     }
   }, []);
 
@@ -173,6 +174,7 @@ export function AdminTopBar({
           onClick={toggleTheme}
           className="touch-target p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          title="Toggle theme"
         >
           {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
         </button>

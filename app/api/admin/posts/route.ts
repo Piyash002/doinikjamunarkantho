@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireAuthSession, apiSuccess, apiError } from '@/src/lib/apiResponse';
+import { requireAuthSession, apiSuccess, apiError, getZodErrorMessage } from '@/src/lib/apiResponse';
 import { postListQuerySchema, postCreateSchema } from '@/src/lib/validators';
 import { getAdminPosts, createAdminPost } from '@/src/services/adminPostService';
 import { sanitizePostHtml } from '@/src/lib/sanitize';
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const parsed = postListQuerySchema.safeParse(queryObj);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Invalid search parameters.', 400);
+      return apiError(getZodErrorMessage(parsed.error, 'Invalid search parameters.'), 400);
     }
 
     const result = await getAdminPosts({
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const parsed = postCreateSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed for post.', 400);
+      return apiError(getZodErrorMessage(parsed.error, 'Validation failed for post.'), 400);
     }
 
     const post = await createAdminPost(parsed.data, session as any);

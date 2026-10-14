@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --admin-brand: #0a2b3a;
   --admin-brand-teal: #1b7d95;

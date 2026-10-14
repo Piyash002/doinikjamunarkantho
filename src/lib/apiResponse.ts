@@ -20,6 +20,10 @@ export function apiSuccess<T>(data: T, meta?: ApiResponse['meta'], status = 200)
   return NextResponse.json(body, { status });
 }
 
+export function getZodErrorMessage(error: any, fallback = 'Validation failed'): string {
+  return error?.issues?.[0]?.message || error?.errors?.[0]?.message || fallback;
+}
+
 export function apiError(error: string | Error | unknown, status = 400) {
   const message = error instanceof Error ? error.message : (typeof error === 'string' ? error : 'An unexpected error occurred.');
   return NextResponse.json({ success: false, error: message }, { status });

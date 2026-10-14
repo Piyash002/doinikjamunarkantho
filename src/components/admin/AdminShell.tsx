@@ -66,7 +66,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             {/* Scrollable Main Content Container */}
             <main
               id="admin-main-content"
-              className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8"
+              className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 bg-slate-50 dark:bg-[#090d16]"
             >
               <div className="max-w-7xl mx-auto w-full">{children}</div>
             </main>
