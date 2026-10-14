@@ -1,0 +1,22 @@
+{
+  "name": "যমুনা কণ্ঠ নিউজরুম অ্যাডমিন",
+  "short_name": "অ্যাডমিন",
+  "description": "দৈনিক যমুনা কণ্ঠ প্রশাসনিক কন্ট্রোল ও নিউজরুম প্যানেল",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#0a2b3a",
+  "theme_color": "#0a2b3a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

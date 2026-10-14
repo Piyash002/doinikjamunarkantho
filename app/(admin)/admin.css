@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+:root {
+  --admin-brand: #0a2b3a;
+  --admin-brand-teal: #1b7d95;
+  --admin-brand-teal-light: #e0f2fe;
+  --admin-bg: #f8fafc;
+  --admin-card: #ffffff;
+  --admin-card-hover: #f1f5f9;
+  --admin-border: #e2e8f0;
+  --admin-border-subtle: #f1f5f9;
+  --admin-text: #0f172a;
+  --admin-text-secondary: #475569;
+  --admin-muted: #64748b;
+  --admin-ring: rgba(27, 125, 149, 0.25);
+  --admin-danger: #ef4444;
+  --admin-success: #10b981;
+  --admin-warning: #f59e0b;
+  --admin-sidebar-width: 260px;
+  --admin-sidebar-collapsed: 72px;
+  --admin-topbar-height: 64px;
+  --admin-bottombar-height: 64px;
+}
+
+.dark, [data-theme="dark"] {
+  --admin-brand: #1b7d95;
+  --admin-brand-teal: #38bdf8;
+  --admin-brand-teal-light: rgba(56, 189, 248, 0.15);
+  --admin-bg: #090d16;
+  --admin-card: #111827;
+  --admin-card-hover: #1f2937;
+  --admin-border: #1f293d;
+  --admin-border-subtle: #1e293b;
+  --admin-text: #f8fafc;
+  --admin-text-secondary: #cbd5e1;
+  --admin-muted: #94a3b8;
+  --admin-ring: rgba(56, 189, 248, 0.3);
+  --admin-danger: #f87171;
+  --admin-success: #34d399;
+  --admin-warning: #fbbf24;
+}
+
+/* Base resets & typography */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+  font-family: var(--font-bengali), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS Zoom on focus by enforcing min 16px font-size */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Enforce 44x44px minimum touch target on interactive elements */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 100dvh App Container with safe area padding */
+.admin-shell-container {
+  min-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--admin-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-muted);
+}
+
+/* Tiptap Editor Mobile-Friendly Toolbar & Content */
+.tiptap-editor-wrap {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.75rem;
+  background: var(--admin-card);
+  overflow: hidden;
+}
+
+.tiptap-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--admin-bg);
+  border-bottom: 1px solid var(--admin-border);
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.tiptap-toolbar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tiptap-content-area {
+  padding: 16px;
+  min-height: 280px;
+  outline: none;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--admin-text);
+}
+
+.tiptap-content-area p {
+  margin-bottom: 1rem;
+}
+
+.tiptap-content-area h1,
+.tiptap-content-area h2,
+.tiptap-content-area h3 {
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.tiptap-content-area blockquote {
+  border-left: 4px solid var(--admin-brand-teal);
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+  color: var(--admin-muted);
+  font-style: italic;
+}
+
+.tiptap-content-area img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.tiptap-content-area table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.tiptap-content-area th,
+.tiptap-content-area td {
+  border: 1px solid var(--admin-border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.tiptap-content-area th {
+  background: var(--admin-bg);
+  font-weight: 600;
+}
+
+/* Animations */
+@keyframes slideUpSheet {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-bottom-sheet {
+  animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-backdrop {
+  animation: fadeInBackdrop 0.2s ease-out forwards;
+}
