@@ -13,6 +13,8 @@ type ArticleSiteHeaderProps = {
   siteName: string;
   logoUrl?: string;
   categories: ArticleCategory[];
+  activeSlug?: string;
+  trendingTopics?: Array<{ _id?: string; name: string; slug: string }>;
 };
 
 function subscribeToTheme(onChange: () => void) {
@@ -36,6 +38,8 @@ export default function ArticleSiteHeader({
   siteName,
   logoUrl,
   categories,
+  activeSlug,
+  trendingTopics = [],
 }: ArticleSiteHeaderProps) {
   const isDark = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, () => false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -67,8 +71,12 @@ export default function ArticleSiteHeader({
             />
           </Link>
           <nav className="main-nav" aria-label="প্রধান বিভাগ">
-            {categories.slice(0, 8).map((category) => (
-              <Link className="nav-link" href={`/${encodeURIComponent(category.slug)}`} key={category.slug}>
+            {categories.map((category) => (
+              <Link
+                className={activeSlug === category.slug ? "nav-link active" : "nav-link"}
+                href={`/${encodeURIComponent(category.slug)}`}
+                key={category.slug}
+              >
                 {category.name_bn}
               </Link>
             ))}
@@ -107,6 +115,30 @@ export default function ArticleSiteHeader({
             </button>
           </div>
         </div>
+
+        {/* Navbar 2: Trending Topics Bar directly below Categories */}
+        {trendingTopics.length > 0 && (
+          <div className="header-trending-bar" aria-label="ট্রেন্ডিং টপিক">
+            <div className="header-trending-inner">
+              <span className="trending-badge-label">
+                <span className="trending-pulse-dot" />
+                ট্রেন্ডিং:
+              </span>
+              <div className="trending-topics-scroll">
+                {trendingTopics.map((topic) => (
+                  <Link
+                    className="trending-topic-link"
+                    key={topic._id || topic.slug}
+                    href={`/topic/${encodeURIComponent(topic.slug || topic.name)}`}
+                  >
+                    #{topic.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {searchOpen && (
           <form action="/search" className="search-bar">
             <svg viewBox="0 0 24 24" aria-hidden="true">

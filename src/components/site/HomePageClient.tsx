@@ -37,6 +37,7 @@ type HomePageClientProps = {
   siteName?: string;
   navCategories?: Array<string | { name_bn?: string; name_en?: string; slug?: string }>;
   trendingKeywords?: string[];
+  trendingTopics?: Array<{ _id: string; name: string; slug: string; order?: number }>;
   featuredPosts?: PostLike[];
   latestPosts?: PostLike[];
   popularPosts?: PostLike[];
@@ -153,6 +154,7 @@ export default function HomePageClient({
   siteName = DEFAULT_SITE_NAME,
   navCategories = FALLBACK_CATEGORIES,
   trendingKeywords = FALLBACK_TRENDING,
+  trendingTopics = [],
   featuredPosts = [],
   latestPosts = [],
   popularPosts = [],
@@ -278,8 +280,20 @@ export default function HomePageClient({
           </a>
 
           <nav className="main-nav" aria-label="প্রধান বিভাগ">
-            {normalizedCategories.slice(0, 8).map((category) => {
+            {normalizedCategories.map((category) => {
               const name = getCategoryName(category as string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined);
+              const slug = typeof category === "object" && category?.slug ? category.slug : "";
+              if (slug && slug !== "all" && slug !== "latest") {
+                return (
+                  <Link
+                    className="nav-link"
+                    href={`/${encodeURIComponent(slug)}`}
+                    key={name}
+                  >
+                    {name}
+                  </Link>
+                );
+              }
               return (
                 <button
                   className={activeCategory === name ? "nav-link active" : "nav-link"}
@@ -328,6 +342,29 @@ export default function HomePageClient({
           </div>
         </div>
 
+        {/* Navbar 2: Trending Topics Bar directly below Category Navbar */}
+        {trendingTopics.length > 0 && (
+          <div className="header-trending-bar" aria-label="ট্রেন্ডিং টপিক">
+            <div className="header-trending-inner">
+              <span className="trending-badge-label">
+                <span className="trending-pulse-dot" />
+                ট্রেন্ডিং:
+              </span>
+              <div className="trending-topics-scroll">
+                {trendingTopics.map((topic) => (
+                  <Link
+                    className="trending-topic-link"
+                    key={topic._id || topic.slug}
+                    href={`/topic/${encodeURIComponent(topic.slug || topic.name)}`}
+                  >
+                    #{topic.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {isSearchOpen && (
           <form
             className="search-bar"
@@ -364,23 +401,6 @@ export default function HomePageClient({
       </div>
 
       <div className="page-shell" id="top">
-        <div className="category-strip" aria-label="সব সংবাদ বিভাগ">
-          <span className="category-label">বিভাগ</span>
-          {normalizedCategories.map((category) => {
-            const name = getCategoryName(category as string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined);
-            return (
-              <button
-                className={activeCategory === name ? "category-chip selected" : "category-chip"}
-                key={name}
-                onClick={() => selectCategory(name)}
-                type="button"
-              >
-                {name}
-              </button>
-            );
-          })}
-        </div>
-
         <section className="breaking-news" aria-label="ব্রেকিং নিউজ">
           <span className="breaking-label"><i /> ব্রেকিং</span>
           <span className="breaking-text">
@@ -595,6 +615,14 @@ export default function HomePageClient({
               <strong>আমাদের বিভাগ</strong>
               {normalizedCategories.slice(0, 5).map((category) => {
                 const name = getCategoryName(category as string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined);
+                const slug = typeof category === "object" && category?.slug ? category.slug : "";
+                if (slug && slug !== "all" && slug !== "latest") {
+                  return (
+                    <Link key={name} href={`/${encodeURIComponent(slug)}`}>
+                      {name}
+                    </Link>
+                  );
+                }
                 return (
                   <button key={name} onClick={() => selectCategory(name)} type="button">
                     {name}
@@ -634,6 +662,18 @@ export default function HomePageClient({
             <div className="menu-category-grid">
               {normalizedCategories.map((category) => {
                 const name = getCategoryName(category as string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined);
+                const slug = typeof category === "object" && category?.slug ? category.slug : "";
+                if (slug && slug !== "all" && slug !== "latest") {
+                  return (
+                    <Link
+                      key={name}
+                      href={`/${encodeURIComponent(slug)}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <span>•</span>{name}<b aria-hidden="true">↗</b>
+                    </Link>
+                  );
+                }
                 return (
                   <button key={name} onClick={() => selectCategory(name)} type="button">
                     <span>•</span>{name}<b aria-hidden="true">↗</b>

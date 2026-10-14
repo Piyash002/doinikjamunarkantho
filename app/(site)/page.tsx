@@ -1,6 +1,7 @@
 import HomePageClient from '@/src/components/site/HomePageClient';
 import Settings from '@/src/models/Settings';
 import { getHomeData } from '@/src/services/news';
+import { getPublicTrendingTopics } from '@/src/services/adminTagService';
 
 const fallbackCategories: string[] = [
   'সর্বশেষ',
@@ -35,20 +36,26 @@ export default async function HomePage() {
   let latestPosts: any[] = [];
   let popularPosts: any[] = [];
   let opinionPosts: any[] = [];
+  let trendingTopics: any[] = [];
   let siteName = fallbackSiteName;
 
   try {
-    const [settings, homeData] = await Promise.all([
+    const [settings, homeData, topicsData] = await Promise.all([
       Settings.findOne({}).lean(),
       getHomeData().catch(() => ({ categories: [], featured: [], latest: [], trending: [] })),
+      getPublicTrendingTopics().catch(() => []),
     ]);
 
+    trendingTopics = topicsData || [];
     siteName = settings?.siteName || fallbackSiteName;
 
     const categoryList = Array.isArray(homeData?.categories) ? homeData.categories : [];
-    navCategories = ['সর্বশেষ', ...categoryList
-      .filter((category) => category && category.isActive !== false)
-      .map((category) => toDisplayCategoryName(category))];
+    navCategories = [
+      'সর্বশেষ',
+      ...categoryList
+        .filter((category) => category && category.isActive !== false)
+        .map((category) => toDisplayCategoryName(category)),
+    ];
 
     const settingsTrending = Array.isArray(settings?.trendingKeywords) ? settings.trendingKeywords : [];
     if (settingsTrending.length) {
@@ -67,6 +74,7 @@ export default async function HomePage() {
   } catch (error) {
     navCategories = fallbackCategories;
     trendingKeywords = fallbackTrending;
+    trendingTopics = [];
     siteName = fallbackSiteName;
     featuredPosts = [] as any[];
     latestPosts = [] as any[];
@@ -79,6 +87,7 @@ export default async function HomePage() {
       siteName={siteName}
       navCategories={navCategories}
       trendingKeywords={trendingKeywords}
+      trendingTopics={trendingTopics}
       featuredPosts={featuredPosts}
       latestPosts={latestPosts}
       popularPosts={popularPosts}

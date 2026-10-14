@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
   const session = await getAdminSessionFromRequest(request);
   if (session) {
     await logActivity({
-      userId: session.id,
-      userName: session.username,
-      userRole: session.role,
+      userId: String(session.id),
+      userName: String(session.username),
+      userRole: String(session.role),
       action: 'logout',
       entity: 'auth',
       details: 'User logged out',
@@ -20,6 +20,6 @@ export async function POST(request: NextRequest) {
 
   const response = apiSuccess({ message: 'Logged out successfully.' });
   const cookieOptions = getCookieOptions();
-  response.cookies.set('admin_token', '', { ...cookieOptions, maxAge: 0 });
+  response.cookies.set('admin_token', '', { ...cookieOptions, sameSite: 'lax', maxAge: 0 });
   return response;
 }

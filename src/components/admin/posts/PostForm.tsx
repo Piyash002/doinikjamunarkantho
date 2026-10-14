@@ -108,6 +108,30 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
     setOpenSections((prev) => ({ ...prev, [sec]: !prev[sec] }));
   };
 
+  // Dynamic Categories & Trending Topics
+  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/categories')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && Array.isArray(resData.data)) {
+          setAvailableCategories(resData.data);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/admin/tags')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && Array.isArray(resData.data)) {
+          setAvailableTopics(resData.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Auto-generate slug from title
   useEffect(() => {
     if (title.trim()) {
@@ -550,17 +574,27 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="জাতীয়">জাতীয় (National)</option>
-                <option value="রাজনীতি">রাজনীতি (Politics)</option>
-                <option value="অর্থনীতি">অর্থনীতি (Economy)</option>
-                <option value="সারাদেশ">সারাদেশ (Countrywide)</option>
-                <option value="আন্তর্জাতিক">আন্তর্জাতিক (International)</option>
-                <option value="খেলা">খেলা (Sports)</option>
-                <option value="বিনোদন">বিনোদন (Entertainment)</option>
-                <option value="মতামত">মতামত (Opinion)</option>
-                <option value="শিক্ষা">শিক্ষা (Education)</option>
-                <option value="স্বাস্থ্য">স্বাস্থ্য (Health)</option>
-                <option value="প্রযুক্তি">প্রযুক্তি (Technology)</option>
+                {availableCategories.length > 0 ? (
+                  availableCategories.map((c) => (
+                    <option key={c._id || c.slug} value={c.slug || c.name_bn}>
+                      {c.name_bn} ({c.name_en})
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="জাতীয়">জাতীয় (National)</option>
+                    <option value="রাজনীতি">রাজনীতি (Politics)</option>
+                    <option value="অর্থনীতি">অর্থনীতি (Economy)</option>
+                    <option value="সারাদেশ">সারাদেশ (Countrywide)</option>
+                    <option value="আন্তর্জাতিক">আন্তর্জাতিক (International)</option>
+                    <option value="খেলা">খেলা (Sports)</option>
+                    <option value="বিনোদন">বিনোদন (Entertainment)</option>
+                    <option value="মতামত">মতামত (Opinion)</option>
+                    <option value="শিক্ষা">শিক্ষা (Education)</option>
+                    <option value="স্বাস্থ্য">স্বাস্থ্য (Health)</option>
+                    <option value="প্রযুক্তি">প্রযুক্তি (Technology)</option>
+                  </>
+                )}
               </Select>
             </FormField>
 
@@ -570,6 +604,32 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
                 onChange={(e) => setSubCategory(e.target.value)}
                 placeholder="e.g. ক্রিকেট, ফুটবল, নির্বাচন..."
               />
+            </FormField>
+
+            {/* Trending Topic Selector */}
+            <FormField
+              label="Trending Topic (ট্রেন্ডিং টপিক)"
+              hint="Select a trending topic to feature this article on its topic page"
+            >
+              <Select
+                value={tags.find((t) => availableTopics.some((at) => at.name === t)) || ''}
+                onChange={(e) => {
+                  const selected = e.target.value;
+                  if (!selected) return;
+                  if (!tags.includes(selected)) {
+                    setTags((prev) => [selected, ...prev]);
+                  }
+                  setIsTrending(true);
+                  setHasUnsavedChanges(true);
+                }}
+              >
+                <option value="">None (কোনো নির্দিষ্ট ট্রেন্ডিং টপিক নয়)</option>
+                {availableTopics.map((top) => (
+                  <option key={top._id || top.name} value={top.name}>
+                    🔥 {top.name} {top.description ? `(${top.description.slice(0, 35)}...)` : ''}
+                  </option>
+                ))}
+              </Select>
             </FormField>
 
             {/* Cascading Location Dropdowns (Shown for সারাদেশ or anytime location is tagged) */}

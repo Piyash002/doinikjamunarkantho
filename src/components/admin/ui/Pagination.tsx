@@ -5,7 +5,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from './Button';
 
 export interface PaginationProps {
-  page: number;
+  page?: number;
+  currentPage?: number;
   totalPages: number;
   totalItems?: number;
   limit?: number;
@@ -16,6 +17,7 @@ export interface PaginationProps {
 
 export function Pagination({
   page,
+  currentPage,
   totalPages,
   totalItems,
   limit = 25,
@@ -23,6 +25,7 @@ export function Pagination({
   onLimitChange,
   className = '',
 }: PaginationProps) {
+  const activePage = page ?? currentPage ?? 1;
   if (totalPages <= 1 && !onLimitChange) return null;
 
   return (
@@ -57,8 +60,8 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
+          disabled={activePage <= 1}
+          onClick={() => onPageChange(activePage - 1)}
           aria-label="Previous page"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -66,14 +69,14 @@ export function Pagination({
         </Button>
 
         <span className="px-3 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-          Page <strong>{page}</strong> of <strong>{totalPages || 1}</strong>
+          Page <strong>{activePage}</strong> of <strong>{totalPages || 1}</strong>
         </span>
 
         <Button
           variant="outline"
           size="sm"
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
+          disabled={activePage >= totalPages}
+          onClick={() => onPageChange(activePage + 1)}
           aria-label="Next page"
         >
           <span className="hidden sm:inline">Next</span>

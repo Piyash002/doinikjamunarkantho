@@ -30,10 +30,11 @@ export async function POST(request: NextRequest) {
 
     const parsed = staticPageSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed for page.', 400);
+      const msg = (parsed.error as any).issues?.[0]?.message || (parsed.error as any).errors?.[0]?.message || 'Validation failed for page.';
+      return apiError(msg, 400);
     }
 
-    const page = await createAdminStaticPage(parsed.data, session as any);
+    const page = await createAdminStaticPage(parsed.data as any, session as any);
     return apiSuccess(page, undefined, 201);
   } catch (error) {
     return apiError(error, 500);

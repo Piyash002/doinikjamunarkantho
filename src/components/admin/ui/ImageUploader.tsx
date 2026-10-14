@@ -18,6 +18,9 @@ export interface ImageUploaderProps {
   value?: ImageValue | null;
   onChange: (value: ImageValue | null) => void;
   onOpenMediaPicker?: () => void;
+  onRemove?: () => void;
+  folder?: string;
+  aspectRatio?: string;
   label?: string;
   showCaption?: boolean;
   showAlt?: boolean;
@@ -28,6 +31,9 @@ export function ImageUploader({
   value,
   onChange,
   onOpenMediaPicker,
+  onRemove,
+  folder = 'jamuna',
+  aspectRatio = 'auto',
   label = 'Featured Image',
   showCaption = true,
   showAlt = true,
@@ -130,7 +136,10 @@ export function ImageUploader({
             />
             <button
               type="button"
-              onClick={() => onChange(null)}
+              onClick={() => {
+                onChange(null);
+                onRemove?.();
+              }}
               className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-rose-600 transition-colors"
               aria-label="Remove image"
             >

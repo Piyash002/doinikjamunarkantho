@@ -13,6 +13,7 @@ export interface BreadcrumbItem {
 export interface PageHeaderProps {
   title: string;
   description?: string;
+  subtitle?: string;
   breadcrumbs?: BreadcrumbItem[];
   backHref?: string;
   actions?: React.ReactNode;
@@ -22,12 +23,14 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  subtitle,
   breadcrumbs,
   backHref,
   actions,
   className = '',
 }: PageHeaderProps) {
   const router = useRouter();
+  const displayDescription = description || subtitle;
 
   return (
     <div className={`flex flex-col gap-3 pb-6 border-b border-slate-200 dark:border-slate-800 ${className}`}>
@@ -71,9 +74,9 @@ export function PageHeader({
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {title}
           </h1>
-          {description && (
+          {displayDescription && (
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {description}
+              {displayDescription}
             </p>
           )}
         </div>

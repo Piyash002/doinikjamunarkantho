@@ -28,7 +28,8 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const parsed = trendingAndBreakingSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed.', 400);
+      const msg = (parsed.error as any).issues?.[0]?.message || (parsed.error as any).errors?.[0]?.message || 'Validation failed.';
+      return apiError(msg, 400);
     }
 
     const updated = await updateAdminTrendingAndBreaking(parsed.data, session as any);

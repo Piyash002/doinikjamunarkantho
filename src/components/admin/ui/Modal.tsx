@@ -10,6 +10,7 @@ export interface ModalProps {
   description?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | string;
   showCloseButton?: boolean;
 }
 
@@ -20,9 +21,11 @@ export function Modal({
   description,
   children,
   maxWidth = 'lg',
+  size,
   showCloseButton = true,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const resolvedMaxWidth = (size as any) || maxWidth;
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -68,7 +71,7 @@ export function Modal({
       {/* Sheet on mobile, Dialog on desktop */}
       <div
         ref={dialogRef}
-        className={`relative z-10 w-full rounded-t-3xl sm:rounded-2xl bg-white dark:bg-slate-900 border-t sm:border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[90dvh] sm:max-h-[85vh] animate-bottom-sheet sm:animate-none ${maxWidthStyles[maxWidth]}`}
+        className={`relative z-10 w-full rounded-t-3xl sm:rounded-2xl bg-white dark:bg-slate-900 border-t sm:border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[90dvh] sm:max-h-[85vh] animate-bottom-sheet sm:animate-none ${maxWidthStyles[resolvedMaxWidth as keyof typeof maxWidthStyles] || maxWidthStyles.lg}`}
       >
         {/* Mobile handle indicator */}
         <div className="sm:hidden flex justify-center pt-3 pb-1" onClick={onClose}>

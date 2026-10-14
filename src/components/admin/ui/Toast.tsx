@@ -14,8 +14,9 @@ export type ToastOptions = {
   undoLabel?: string;
 };
 
-type ToastItem = ToastOptions & {
+type ToastItem = Omit<ToastOptions, 'duration'> & {
   id: string;
+  duration: number;
 };
 
 type ToastContextType = {
@@ -46,7 +47,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
     setToasts((prev) => [...prev, newItem]);
 
-    if (newItem.duration > 0) {
+    if (typeof newItem.duration === 'number' && newItem.duration > 0) {
       setTimeout(() => {
         removeToast(id);
       }, newItem.duration);

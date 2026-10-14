@@ -74,7 +74,7 @@ export default function ActivityLogPage() {
       case 'create':
         return <Badge variant="success">Created</Badge>;
       case 'publish':
-        return <Badge variant="primary">Published</Badge>;
+        return <Badge variant="info">Published</Badge>;
       case 'update':
       case 'reorder':
       case 'settings_update':
@@ -84,13 +84,13 @@ export default function ActivityLogPage() {
       case 'delete':
         return <Badge variant="danger">Deleted</Badge>;
       case 'restore':
-        return <Badge variant="neutral">Restored</Badge>;
+        return <Badge variant="default">Restored</Badge>;
       case 'login':
-        return <Badge variant="primary">Login</Badge>;
+        return <Badge variant="info">Login</Badge>;
       case 'logout':
-        return <Badge variant="neutral">Logout</Badge>;
+        return <Badge variant="default">Logout</Badge>;
       default:
-        return <Badge variant="neutral">{action}</Badge>;
+        return <Badge variant="default">{action}</Badge>;
     }
   }
 

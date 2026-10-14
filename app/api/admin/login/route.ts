@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
     const result = loginSchema.safeParse(body);
 
     if (!result.success) {
-      return apiError(result.error.errors[0]?.message || 'Invalid credentials format.', 400);
+      const msg = (result.error as any).issues?.[0]?.message || (result.error as any).errors?.[0]?.message || 'Invalid credentials format.';
+      return apiError(msg, 400);
     }
 
     const { username, password, rememberMe } = result.data;
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
       avatar: admin.avatar?.url || '',
     });
 
-    response.cookies.set('admin_token', token, cookieOptions);
+    response.cookies.set('admin_token', token, { ...cookieOptions, sameSite: 'lax' });
     return response;
   } catch (error) {
     console.error('Login error:', error);

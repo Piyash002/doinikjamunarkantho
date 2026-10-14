@@ -32,7 +32,6 @@ async function handleCronPublish(request: NextRequest) {
     const result = await publishDueScheduledPosts();
     return apiSuccess({
       message: `Cron job executed successfully. Published ${result.publishedCount} article(s).`,
-      publishedCount: result.publishedCount,
       ...result,
     });
   } catch (error) {

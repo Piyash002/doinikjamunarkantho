@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = userCreateSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed for user.', 400);
+      const msg = (parsed.error as any).issues?.[0]?.message || (parsed.error as any).errors?.[0]?.message || 'Validation failed for user.';
+      return apiError(msg, 400);
     }
 
-    const user = await createAdminUser(parsed.data, session as any);
+    const user = await createAdminUser(parsed.data as any, session as any);
     return apiSuccess(user, undefined, 201);
   } catch (error) {
     return apiError(error, 500);

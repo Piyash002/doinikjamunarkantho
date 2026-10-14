@@ -140,7 +140,7 @@ export async function updateAdminUserProfile(
   data: {
     name?: string;
     email?: string;
-    avatar?: { url: string; publicId?: string };
+    avatar?: { url: string; publicId?: string; caption?: string; alt?: string } | null;
     currentPassword?: string;
     newPassword?: string;
   },

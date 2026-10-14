@@ -37,7 +37,7 @@ import { useAdminAuth } from '@/src/components/admin/AdminAuthContext';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default function PostsPage() {
+function PostsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -620,5 +620,13 @@ export default function PostsPage() {
         isLoading={isActionLoading}
       />
     </div>
+  );
+}
+
+export default function PostsPage() {
+  return (
+    <React.Suspense fallback={<div className="p-6 text-slate-400">Loading articles...</div>}>
+      <PostsPageContent />
+    </React.Suspense>
   );
 }

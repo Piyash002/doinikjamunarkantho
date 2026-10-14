@@ -40,10 +40,11 @@ export async function PUT(
 
     const parsed = postUpdateSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed.', 400);
+      const msg = (parsed.error as any).issues?.[0]?.message || (parsed.error as any).errors?.[0]?.message || 'Validation failed.';
+      return apiError(msg, 400);
     }
 
-    const updated = await updateAdminPost(id, parsed.data, session as any);
+    const updated = await updateAdminPost(id, parsed.data as any, session as any);
     return apiSuccess(updated);
   } catch (error: any) {
     if (error?.code === 409 || error?.message === 'OPTIMISTIC_LOCK_CONFLICT') {

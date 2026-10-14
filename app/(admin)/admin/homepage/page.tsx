@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import useSWR from 'swr';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   LayoutTemplate,
   Pin,

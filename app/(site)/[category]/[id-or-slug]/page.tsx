@@ -13,6 +13,7 @@ import AdSlot from "@/src/models/AdSlot";
 import Category from "@/src/models/Category";
 import Settings from "@/src/models/Settings";
 import { getPostBySlug } from "@/src/services/getPostBySlug";
+import { getPublicTrendingTopics } from "@/src/services/adminTagService";
 
 export const revalidate = 60;
 
@@ -271,10 +272,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   await connectToDatabase();
-  const [settings, categories, stickyAd] = await Promise.all([
+  const [settings, categories, stickyAd, trendingTopics] = await Promise.all([
     Settings.findOne({}).sort({ createdAt: -1 }).lean(),
     Category.find({ isActive: true, showInNav: true }).sort({ order: 1 }).select({ name_bn: 1, slug: 1 }).lean(),
     AdSlot.findOne({ position: "sticky-bottom", isActive: true, imageUrl: { $ne: "" } }).lean(),
+    getPublicTrendingTopics().catch(() => []),
   ]);
 
   const { post, category, author, related, popular, latest, previous, next, ads } = result;
@@ -332,6 +334,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         categories={categories.map((item) => ({ name_bn: item.name_bn, slug: item.slug }))}
         logoUrl={settings?.logo?.url || undefined}
         siteName={siteName}
+        trendingTopics={trendingTopics || []}
       />
       <div className="page-shell article-page-shell">
         <nav aria-label="Breadcrumb" className="article-breadcrumb">

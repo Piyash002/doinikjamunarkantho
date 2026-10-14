@@ -32,6 +32,19 @@ export interface AdminSidebarProps {
   onLinkClick?: () => void;
 }
 
+interface SidebarNavItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  exact?: boolean;
+  allowedRoles?: string[];
+}
+
+interface SidebarNavGroup {
+  group: string;
+  items: SidebarNavItem[];
+}
+
 export function AdminSidebar({
   isCollapsed,
   onToggleCollapse,
@@ -44,7 +57,7 @@ export function AdminSidebar({
   const role = user?.role || 'admin';
 
   // Define sidebar navigation groups with role requirements
-  const navigationGroups = [
+  const navigationGroups: SidebarNavGroup[] = [
     {
       group: 'Overview',
       items: [
@@ -71,7 +84,7 @@ export function AdminSidebar({
           allowedRoles: ['admin', 'editor'],
         },
         {
-          label: 'Tags & Topics',
+          label: 'Trending Topics',
           href: '/admin/tags',
           icon: <Tag className="w-5 h-5 shrink-0" />,
           allowedRoles: ['admin', 'editor'],

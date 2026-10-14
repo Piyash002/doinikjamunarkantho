@@ -29,10 +29,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = categorySchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed for category.', 400);
+      const msg = (parsed.error as any).issues?.[0]?.message || (parsed.error as any).errors?.[0]?.message || 'Validation failed for category.';
+      return apiError(msg, 400);
     }
 
-    const category = await createAdminCategory(parsed.data, session as any);
+    const category = await createAdminCategory(parsed.data as any, session as any);
     return apiSuccess(category, undefined, 201);
   } catch (error) {
     return apiError(error, 500);

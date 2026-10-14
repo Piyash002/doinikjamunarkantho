@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireAuthSession, apiSuccess, apiError } from '@/src/lib/apiResponse';
+import { requireAuthSession, apiSuccess, apiError, getZodErrorMessage } from '@/src/lib/apiResponse';
 import { profileUpdateSchema } from '@/src/lib/validators';
 import { getAdminUserProfile, updateAdminUserProfile } from '@/src/services/adminUserService';
 
@@ -25,10 +25,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const parsed = profileUpdateSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed for profile update.', 400);
+      return apiError(getZodErrorMessage(parsed.error, 'Validation failed for profile update.'), 400);
     }
 
-    const updated = await updateAdminUserProfile(parsed.data, session as any);
+    const updated = await updateAdminUserProfile(parsed.data as any, session as any);
     return apiSuccess(updated);
   } catch (error: any) {
     return apiError(error?.message || 'Failed to update profile.', 400);

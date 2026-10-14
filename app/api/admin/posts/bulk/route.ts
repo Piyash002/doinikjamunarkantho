@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = bulkPostsSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Invalid bulk action request.', 400);
+      const msg = (parsed.error as any).issues?.[0]?.message || (parsed.error as any).errors?.[0]?.message || 'Invalid bulk action request.';
+      return apiError(msg, 400);
     }
 
     const { ids, action, category } = parsed.data;

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { requireAuthSession, apiSuccess, apiError } from '@/src/lib/apiResponse';
+import { requireAuthSession, apiSuccess, apiError, getZodErrorMessage } from '@/src/lib/apiResponse';
 import { adSlotSchema } from '@/src/lib/validators';
 import { getAdminAds, createOrUpdateAdminAd } from '@/src/services/adminSettingsService';
 
@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = adSlotSchema.safeParse(body);
     if (!parsed.success) {
-      return apiError(parsed.error.errors[0]?.message || 'Validation failed for ad slot.', 400);
+      return apiError(getZodErrorMessage(parsed.error, 'Validation failed for ad slot.'), 400);
     }
 
-    const ad = await createOrUpdateAdminAd(parsed.data, session as any);
+    const ad = await createOrUpdateAdminAd(parsed.data as any, session as any);
     return apiSuccess(ad, undefined, 201);
   } catch (error) {
     return apiError(error, 500);
