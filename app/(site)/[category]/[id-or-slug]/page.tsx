@@ -679,9 +679,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             <Link href="/advertise">বিজ্ঞাপন</Link>
           </nav>
           <address className="article-footer-contact">
-            {settings?.footerAddress && <span>{settings.footerAddress}</span>}
-            {settings?.phone && <a href={`tel:${settings.phone}`}>{settings.phone}</a>}
-            {settings?.email && <a href={`mailto:${settings.email}`}>{settings.email}</a>}
+            {settings?.footerAddress && <span>অফিস: {settings.footerAddress}</span>}
+            {settings?.phone && <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}>মোবাইল: {settings.phone}</a>}
+            {settings?.email && <a href={`mailto:${settings.email}`}>ইমেইল: {settings.email}</a>}
           </address>
           <p className="article-footer-copyright">
             {settings?.copyrightText || `© ${new Date(publishedAt || post.createdAt).getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}

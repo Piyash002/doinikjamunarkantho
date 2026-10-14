@@ -52,6 +52,17 @@ type HomePageClientProps = {
   breakingPosts?: PostLike[];
   trendingPosts?: PostLike[];
   ads?: Record<string, { imageUrl?: string; link?: string; position?: string; key?: string; sizeHint?: string }>;
+  footerAddress?: string;
+  phone?: string;
+  email?: string;
+  editorName?: string;
+  copyrightText?: string;
+  socialLinks?: {
+    facebook?: string;
+    x?: string;
+    youtube?: string;
+    instagram?: string;
+  };
 };
 
 const FALLBACK_CATEGORIES: string[] = [
@@ -78,6 +89,11 @@ function toBanglaNumber(value: number | string) {
     .split("")
     .map((char) => map[char] ?? char)
     .join("");
+}
+
+function toEnglishPhone(phone = "") {
+  const bn = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
+  return String(phone).replace(/[০-৯]/g, (d) => String(bn.indexOf(d))).replace(/[^0-9+]/g, "");
 }
 
 function normalizeText(value = "") {
@@ -163,6 +179,12 @@ function toStoryItem(post: PostLike | null | undefined, index = 0, nowValue?: nu
 export default function HomePageClient({
   siteName = DEFAULT_SITE_NAME,
   logoUrl = "/logo.png",
+  footerAddress = "এস এস রোড সিরাজগঞ্জ, মুক্তিযোদ্ধা সংসদ গলি।",
+  phone = "০১৬৭৭৯০৫৫৭০",
+  email = "mdrubelhossainjournalits@gmail.com",
+  editorName,
+  copyrightText,
+  socialLinks,
   navCategories = FALLBACK_CATEGORIES,
   trendingKeywords = FALLBACK_TRENDING,
   trendingTopics = [],
@@ -649,12 +671,41 @@ export default function HomePageClient({
               </a>
               <p>সত্য ও বস্তুনিষ্ঠ সংবাদে, প্রতিদিন আপনার পাশে।</p>
               <div className="social-links" aria-label="সামাজিক যোগাযোগমাধ্যম">
-                <a href="#footer" aria-label="ফেসবুক">f</a>
-                <a href="#footer" aria-label="এক্স">𝕏</a>
-                <a href="#footer" aria-label="ইনস্টাগ্রাম">◎</a>
-                <a href="#footer" aria-label="ইউটিউব">▶</a>
+                <a
+                  href={socialLinks?.facebook || "#footer"}
+                  target={socialLinks?.facebook ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  aria-label="ফেসবুক"
+                >
+                  f
+                </a>
+                <a
+                  href={socialLinks?.x || "#footer"}
+                  target={socialLinks?.x ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  aria-label="এক্স"
+                >
+                  𝕏
+                </a>
+                <a
+                  href={socialLinks?.instagram || "#footer"}
+                  target={socialLinks?.instagram ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  aria-label="ইনস্টাগ্রাম"
+                >
+                  ◎
+                </a>
+                <a
+                  href={socialLinks?.youtube || "#footer"}
+                  target={socialLinks?.youtube ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  aria-label="ইউটিউব"
+                >
+                  ▶
+                </a>
               </div>
             </div>
+
             <div className="footer-links">
               <strong>আমাদের বিভাগ</strong>
               {normalizedCategories.slice(0, 5).map((category) => {
@@ -674,22 +725,45 @@ export default function HomePageClient({
                 );
               })}
             </div>
+
             <div className="footer-links">
               <strong>আরও জানুন</strong>
-              <a href="#footer">আমাদের সম্পর্কে</a>
-              <a href="#footer">যোগাযোগ</a>
-              <a href="#footer">গোপনীয়তা নীতি</a>
-              <a href="#footer">বিজ্ঞাপন</a>
+              <Link href="/about">আমাদের সম্পর্কে</Link>
+              <Link href="/contact">যোগাযোগ</Link>
+              <Link href="/privacy">গোপনীয়তা নীতি</Link>
+              <Link href="/advertise">বিজ্ঞাপন</Link>
             </div>
-            <div className="footer-app">
-              <span>পড়ুন, শুনুন, দেখুন</span>
-              <strong>{siteName} অ্যাপ</strong>
-              <a href="#footer">অ্যাপ ডাউনলোড <span aria-hidden="true">↗</span></a>
+
+            <div className="footer-contact-block">
+              <strong>যোগাযোগ ও কার্যালয়</strong>
+              <p className="footer-contact-item">
+                <span className="contact-label">অফিস:</span> {footerAddress}
+              </p>
+              <p className="footer-contact-item">
+                <span className="contact-label">মোবাইল:</span>{" "}
+                <a href={`tel:${phone.replace(/[^0-9+]/g, "")}`}>{phone}</a>
+              </p>
+              <p className="footer-contact-item">
+                <span className="contact-label">ইমেইল:</span>{" "}
+                <a href={`mailto:${email}`}>{email}</a>
+              </p>
+              {editorName ? (
+                <p className="footer-contact-item">
+                  <span className="contact-label">সম্পাদক ও প্রকাশক:</span> {editorName}
+                </p>
+              ) : null}
             </div>
           </div>
+
           <div className="footer-bottom">
-            <span>© ২০২৬ {siteName}। সর্বস্বত্ব সংরক্ষিত।</span>
-            <span>ঢাকা, বাংলাদেশ <i /> সম্পাদকীয় ও বাণিজ্যিক যোগাযোগ</span>
+            <span>{copyrightText || `© ${new Date().getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}</span>
+            <div className="footer-bottom-contact">
+              <span>অফিস: {footerAddress}</span>
+              <i aria-hidden="true" />
+              <span>মোবাইল: <a href={`tel:${phone.replace(/[^0-9+]/g, "")}`}>{phone}</a></span>
+              <i aria-hidden="true" />
+              <span>ইমেইল: <a href={`mailto:${email}`}>{email}</a></span>
+            </div>
           </div>
         </footer>
       </div>

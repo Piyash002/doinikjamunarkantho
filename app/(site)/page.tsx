@@ -22,9 +22,10 @@ export default async function HomePage() {
   let adsMap: Record<string, any> = {};
   let siteName = fallbackSiteName;
   let logoUrl = '/logo.png';
+  let settings: any = null;
 
   try {
-    const [settings, homeData, topicsData, navCats, activeAds] = await Promise.all([
+    const [fetchedSettings, homeData, topicsData, navCats, activeAds] = await Promise.all([
       Settings.findOne({}).lean(),
       getHomeData().catch(() => ({ categories: [], featured: [], latest: [], trending: [], breaking: [] })),
       getPublicTrendingTopics().catch(() => []),
@@ -32,6 +33,7 @@ export default async function HomePage() {
       AdSlot.find({ isActive: true, imageUrl: { $ne: '' } }).lean().catch(() => []),
     ]);
 
+    settings = fetchedSettings;
     navCategories = navCats || [];
     trendingTopics = topicsData || [];
     siteName = settings?.siteName || fallbackSiteName;
@@ -87,6 +89,12 @@ export default async function HomePage() {
     <HomePageClient
       siteName={siteName}
       logoUrl={logoUrl}
+      footerAddress={settings?.footerAddress || "এস এস রোড সিরাজগঞ্জ, মুক্তিযোদ্ধা সংসদ গলি।"}
+      phone={settings?.phone || "০১৬৭৭৯০৫৫৭০"}
+      email={settings?.email || "mdrubelhossainjournalits@gmail.com"}
+      editorName={settings?.editorName}
+      copyrightText={settings?.copyrightText}
+      socialLinks={settings?.socialLinks}
       navCategories={JSON.parse(JSON.stringify(navCategories))}
       trendingKeywords={trendingKeywords}
       trendingTopics={JSON.parse(JSON.stringify(trendingTopics))}

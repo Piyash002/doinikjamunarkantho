@@ -923,19 +923,35 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
             <div className="md:col-span-1">
               <strong className="text-slate-900 dark:text-slate-100 text-sm block mb-3 font-bold">
-                যোগাযোগ ও সম্পাদকীয়
+                যোগাযোগ ও কার্যালয়
               </strong>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                সম্পাদক ও প্রকাশক: দৈনিক যমুনা কণ্ঠ
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                ইমেইল: contact@jamunarkantho.com
-              </p>
+              {settings?.footerAddress && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 leading-relaxed">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">অফিস:</span> {settings.footerAddress}
+                </p>
+              )}
+              {settings?.phone && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">মোবাইল:</span>{" "}
+                  <a href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`} className="hover:underline">{settings.phone}</a>
+                </p>
+              )}
+              {settings?.email && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">ইমেইল:</span>{" "}
+                  <a href={`mailto:${settings.email}`} className="hover:underline">{settings.email}</a>
+                </p>
+              )}
+              {settings?.editorName && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">সম্পাদক ও প্রকাশক:</span> {settings.editorName}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="border-t border-slate-100 dark:border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <span>© {new Date().getFullYear()} {siteName}। সর্বস্বত্ব সংরক্ষিত।</span>
+            <span>{settings?.copyrightText || `© ${new Date().getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}</span>
             <div className="flex items-center gap-4">
               <Link href="/about" className="hover:underline">আমাদের সম্পর্কে</Link>
               <Link href="/privacy" className="hover:underline">গোপনীয়তা নীতি</Link>

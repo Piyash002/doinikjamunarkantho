@@ -485,7 +485,14 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
       <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-10 mt-12 text-slate-600 dark:text-slate-400 text-sm">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <span>© {new Date().getFullYear()} {siteName}। সর্বস্বত্ব সংরক্ষিত।</span>
+            <span>{settings?.copyrightText || `© ${new Date().getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}</span>
+            {settings?.footerAddress && (
+              <span className="text-center sm:text-right">
+                অফিস: {settings.footerAddress}
+                {settings?.phone && ` • মোবাইল: ${settings.phone}`}
+                {settings?.email && ` • ইমেইল: ${settings.email}`}
+              </span>
+            )}
             <div className="flex items-center gap-4">
               <Link href="/" className="hover:underline">হোম</Link>
               <Link href="/privacy" className="hover:underline">গোপনীয়তা নীতি</Link>
