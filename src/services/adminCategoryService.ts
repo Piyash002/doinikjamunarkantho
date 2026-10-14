@@ -72,6 +72,8 @@ export async function updateAdminCategory(id: string, data: any, session: AdminU
 
   if (data.slug && data.slug !== category.slug) {
     data.slug = slugify(data.slug, { lower: true, strict: true, trim: true });
+  } else if (!data.slug && data.name_en && data.name_en !== category.name_en) {
+    data.slug = slugify(data.name_en, { lower: true, strict: true, trim: true });
   }
 
   Object.assign(category, {

@@ -1,9 +1,9 @@
-import slugify from 'slugify';
+import rawSlugify from 'slugify';
 
 export function generateBanglaSafeSlug(text: string): string {
-  const clean = text.trim();
+  const clean = (text || '').trim();
   // If text contains latin characters, slugify standard
-  let slug = slugify(clean, { lower: true, strict: true, trim: true });
+  let slug = rawSlugify(clean, { lower: true, strict: true, trim: true });
   // If slug is empty (due to unicode/Bangla characters only)
   if (!slug) {
     slug = clean
@@ -12,5 +12,8 @@ export function generateBanglaSafeSlug(text: string): string {
       .replace(/-+/g, '-')
       .toLowerCase();
   }
-  return slug || `post-${Date.now()}`;
+  return slug || `slug-${Date.now()}`;
 }
+
+export const slugify = generateBanglaSafeSlug;
+export default generateBanglaSafeSlug;

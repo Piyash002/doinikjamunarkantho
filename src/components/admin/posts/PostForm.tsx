@@ -55,7 +55,6 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
   // Core Form State
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(initialData?.slug));
   const [lead, setLead] = useState(initialData?.lead || '');
   const [excerpt, setExcerpt] = useState(initialData?.excerpt || '');
   const [content, setContent] = useState(initialData?.content || '');
@@ -109,9 +108,9 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
     setOpenSections((prev) => ({ ...prev, [sec]: !prev[sec] }));
   };
 
-  // Auto-generate slug from title if user hasn't explicitly edited slug
+  // Auto-generate slug from title
   useEffect(() => {
-    if (!slugManuallyEdited && title.trim()) {
+    if (title.trim()) {
       const generated = generateBanglaSafeSlug(title);
       setSlug(generated);
     }
@@ -400,18 +399,6 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter an impactful headline in Bangla or English..."
                 className="font-bold text-base sm:text-lg"
-              />
-            </FormField>
-
-            <FormField label="URL Slug" hint="Editable slug for browser URL. Supports Bangla Unicode and English characters.">
-              <Input
-                value={slug}
-                onChange={(e) => {
-                  setSlugManuallyEdited(true);
-                  setSlug(e.target.value);
-                }}
-                placeholder="article-url-slug"
-                className="font-mono text-xs sm:text-sm"
               />
             </FormField>
 

@@ -188,7 +188,7 @@ export const profileUpdateSchema = z.object({
 
 export const staticPageSchema = z.object({
   title: z.string().trim().min(2).max(200),
-  slug: z.string().trim().min(2).max(100),
+  slug: z.string().trim().min(2).max(100).optional(),
   content: z.string().default(''),
   excerpt: z.string().trim().max(500).optional().or(z.literal('')),
   featuredImage: mediaSchema.nullable().optional(),

@@ -13,6 +13,7 @@ import { Badge } from '@/src/components/admin/ui/Badge';
 import { ConfirmDialog } from '@/src/components/admin/ui/ConfirmDialog';
 import { TableSkeleton } from '@/src/components/admin/ui/Skeleton';
 import { useToast } from '@/src/components/admin/ui/Toast';
+import { generateBanglaSafeSlug } from '@/src/lib/slug';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -24,13 +25,12 @@ export default function StaticPagesListPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [newSlug, setNewSlug] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   async function handleCreatePage(e: React.FormEvent) {
     e.preventDefault();
-    if (!newTitle.trim() || !newSlug.trim()) return;
+    if (!newTitle.trim()) return;
 
     try {
       setIsSubmitting(true);
@@ -39,7 +39,7 @@ export default function StaticPagesListPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newTitle.trim(),
-          slug: newSlug.trim().toLowerCase(),
+          slug: generateBanglaSafeSlug(newTitle.trim()),
           content: '<p>Write page content here...</p>',
         }),
       });
@@ -49,7 +49,6 @@ export default function StaticPagesListPage() {
 
       setIsCreateOpen(false);
       setNewTitle('');
-      setNewSlug('');
       mutate();
       toastSuccess('Static page created!');
     } catch (err: any) {
@@ -159,22 +158,8 @@ export default function StaticPagesListPage() {
           <FormField label="Page Title" required>
             <Input
               value={newTitle}
-              onChange={(e) => {
-                setNewTitle(e.target.value);
-                if (!newSlug) {
-                  setNewSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
-                }
-              }}
+              onChange={(e) => setNewTitle(e.target.value)}
               placeholder="e.g. আমাদের সম্পর্কে (About Us)"
-              required
-            />
-          </FormField>
-
-          <FormField label="URL Slug" required hint="e.g. about, privacy-policy, terms">
-            <Input
-              value={newSlug}
-              onChange={(e) => setNewSlug(e.target.value)}
-              placeholder="about"
               required
             />
           </FormField>

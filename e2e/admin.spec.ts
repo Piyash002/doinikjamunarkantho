@@ -137,7 +137,7 @@ test.describe('Mobile-First Layout & Responsiveness', () => {
 });
 
 test.describe('Post Lifecycle: Draft, Publish, Trash, Restore, and Delete', () => {
-  let adminCookieHeader: { Cookie: string };
+  let adminCookieHeader: { Cookie: string; Authorization: string };
   let createdPostId: string | null = null;
   const uniqueTitle = `পরীক্ষামূলক সংবাদ প্রতিবেদন ${Date.now()}`;
 

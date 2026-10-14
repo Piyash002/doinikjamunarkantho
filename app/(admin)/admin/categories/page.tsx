@@ -38,6 +38,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { PageHeader } from '@/src/components/admin/ui/PageHeader';
 import { Button } from '@/src/components/admin/ui/Button';
 import { Modal } from '@/src/components/admin/ui/Modal';
+import { generateBanglaSafeSlug, slugify } from '@/src/lib/slug';
 import { Input } from '@/src/components/admin/ui/Input';
 import { Select } from '@/src/components/admin/ui/Select';
 import { Switch } from '@/src/components/admin/ui/Switch';
@@ -188,7 +189,6 @@ export default function CategoriesPage() {
   // Form State
   const [nameBn, setNameBn] = useState('');
   const [nameEn, setNameEn] = useState('');
-  const [slug, setSlug] = useState('');
   const [homeLayout, setHomeLayout] = useState('hero');
   const [parent, setParent] = useState('');
   const [showInNav, setShowInNav] = useState(true);
@@ -258,7 +258,6 @@ export default function CategoriesPage() {
     setEditingCategory(null);
     setNameBn('');
     setNameEn('');
-    setSlug('');
     setHomeLayout('hero');
     setParent('');
     setShowInNav(true);
@@ -271,7 +270,6 @@ export default function CategoriesPage() {
     setEditingCategory(cat);
     setNameBn(cat.name_bn || '');
     setNameEn(cat.name_en || '');
-    setSlug(cat.slug || '');
     setHomeLayout(cat.homeLayout || 'hero');
     setParent(cat.parent?._id || cat.parent || '');
     setShowInNav(cat.showInNav !== false);
@@ -292,7 +290,7 @@ export default function CategoriesPage() {
       const payload = {
         name_bn: nameBn,
         name_en: nameEn,
-        slug: slug || undefined,
+        slug: generateBanglaSafeSlug(nameEn.trim() || nameBn.trim()),
         homeLayout,
         parent: parent || null,
         showInNav,
@@ -408,14 +406,6 @@ export default function CategoriesPage() {
               onChange={(e) => setNameEn(e.target.value)}
               placeholder="e.g. Economy, Sports, International..."
               required
-            />
-          </FormField>
-
-          <FormField label="URL Slug" hint="Leave empty to automatically generate from name">
-            <Input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="e.g. economy"
             />
           </FormField>
 

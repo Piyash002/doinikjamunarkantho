@@ -12,6 +12,7 @@ import { FormField } from '@/src/components/admin/ui/FormField';
 import { Switch } from '@/src/components/admin/ui/Switch';
 import { TiptapEditor } from '@/src/components/admin/editor/TiptapEditor';
 import { useToast } from '@/src/components/admin/ui/Toast';
+import { generateBanglaSafeSlug } from '@/src/lib/slug';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -45,16 +46,17 @@ export default function EditStaticPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !slug.trim()) return;
+    if (!title.trim()) return;
 
     try {
       setIsSaving(true);
+      const finalSlug = slug || generateBanglaSafeSlug(title);
       const res = await fetch(`/api/admin/pages/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
-          slug: slug.trim(),
+          slug: finalSlug,
           excerpt: excerpt.trim(),
           content,
           isActive,
@@ -113,15 +115,6 @@ export default function EditStaticPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Terms of Service"
-              required
-            />
-          </FormField>
-
-          <FormField label="Public URL Slug" required hint="e.g. terms, privacy-policy">
-            <Input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="terms"
               required
             />
           </FormField>

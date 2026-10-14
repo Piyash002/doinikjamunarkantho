@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '@/src/lib/db';
+import { generateBanglaSafeSlug } from '@/src/lib/slug';
 import StaticPage from '@/src/models/StaticPage';
 import { logActivity } from './adminAuditService';
 import type { AdminUserSession } from './adminPostService';
@@ -64,9 +65,20 @@ export async function createAdminStaticPage(data: any, session: AdminUserSession
     throw new Error('Only administrators can create static pages.');
   }
 
-  const existing = await StaticPage.findOne({ slug: data.slug });
-  if (existing) {
-    throw new Error('A page with this URL slug already exists.');
+  if (!data.slug) {
+    const baseSlug = generateBanglaSafeSlug(data.title);
+    let candidateSlug = baseSlug;
+    let counter = 1;
+    while (await StaticPage.findOne({ slug: candidateSlug })) {
+      candidateSlug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    data.slug = candidateSlug;
+  } else {
+    const existing = await StaticPage.findOne({ slug: data.slug });
+    if (existing) {
+      throw new Error('A page with this URL slug already exists.');
+    }
   }
 
   const page = await StaticPage.create({
