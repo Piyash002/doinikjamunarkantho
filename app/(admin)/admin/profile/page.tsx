@@ -202,7 +202,9 @@ export default function ProfilePage() {
           <FormField label="Current Password">
             <div className="relative">
               <Input
+                name="current-password"
                 type={showCurrentPass ? 'text' : 'password'}
+                autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Enter current password"
@@ -222,7 +224,9 @@ export default function ProfilePage() {
             <FormField label="New Password" hint="Minimum 6 characters">
               <div className="relative">
                 <Input
+                  name="new-password"
                   type={showNewPass ? 'text' : 'password'}
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="New secure password"
@@ -240,7 +244,9 @@ export default function ProfilePage() {
 
             <FormField label="Confirm New Password">
               <Input
+                name="confirm-password"
                 type="password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter new password"

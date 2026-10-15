@@ -61,7 +61,7 @@ export async function getHomepageCategorySections() {
           { category: cat.name_en },
         ],
       })
-        .select('title slug category excerpt featuredImage views publishedAt createdAt')
+        .select('title slug category excerpt featuredImage views viewCount publishedAt createdAt')
         .sort({ publishedAt: -1, createdAt: -1 })
         .limit(8)
         .lean();
@@ -80,7 +80,7 @@ export async function getHomepageCategorySections() {
           excerpt: p.excerpt || '',
           category: p.category,
           featuredImage: p.featuredImage?.url ? { url: p.featuredImage.url } : null,
-          views: p.views || 0,
+          views: Math.max(Number(p.views) || 0, Number(p.viewCount) || 0),
           publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
           createdAt: p.createdAt ? p.createdAt.toISOString() : null,
         })),

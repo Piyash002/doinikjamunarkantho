@@ -173,6 +173,117 @@ export const CustomImage = ImageExtension.extend({
   },
 });
 
+// Custom YouTube Extension supporting custom width, alignment, spacing and responsive embed
+export const CustomYoutube = YoutubeExtension.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: '100%',
+        parseHTML: (element) => {
+          const container = element.closest('div[data-youtube-video]') || element;
+          return (
+            container.getAttribute('data-width') ||
+            container.getAttribute('width') ||
+            element.getAttribute('width') ||
+            element.style.width ||
+            '100%'
+          );
+        },
+        renderHTML: (attributes) => ({
+          'data-width': attributes.width || '100%',
+        }),
+      },
+      alignment: {
+        default: 'center',
+        parseHTML: (element) => {
+          const container = element.closest('div[data-youtube-video]') || element;
+          return container.getAttribute('data-alignment') || 'center';
+        },
+        renderHTML: (attributes) => ({
+          'data-alignment': attributes.alignment || 'center',
+        }),
+      },
+      spacing: {
+        default: 'normal',
+        parseHTML: (element) => {
+          const container = element.closest('div[data-youtube-video]') || element;
+          return container.getAttribute('data-spacing') || 'normal';
+        },
+        renderHTML: (attributes) => ({
+          'data-spacing': attributes.spacing || 'normal',
+        }),
+      },
+    };
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const rawSrc = HTMLAttributes.src || '';
+    const videoId = extractYoutubeVideoId(rawSrc);
+    const embedSrc = videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : rawSrc;
+
+    const width = HTMLAttributes['data-width'] || HTMLAttributes.width || '100%';
+    const align = HTMLAttributes['data-alignment'] || 'center';
+    const spacing = HTMLAttributes['data-spacing'] || 'normal';
+
+    let widthStyle = 'width: 100%;';
+    let widthClass = 'yt-size-100';
+    if (width === '75%') {
+      widthStyle = 'width: 75%;';
+      widthClass = 'yt-size-75';
+    } else if (width === '50%') {
+      widthStyle = 'width: 50%;';
+      widthClass = 'yt-size-50';
+    }
+
+    let marginY = '1.25rem';
+    let spacingClass = 'yt-spacing-normal';
+    if (spacing === 'compact') {
+      marginY = '0.5rem';
+      spacingClass = 'yt-spacing-compact';
+    } else if (spacing === 'large') {
+      marginY = '2rem';
+      spacingClass = 'yt-spacing-large';
+    }
+
+    let alignStyle = `margin: ${marginY} auto; clear: both; display: block;`;
+    let alignClass = 'yt-align-center';
+    if (align === 'left') {
+      alignStyle = `float: left; margin: 0.5rem 1.5rem ${marginY} 0; display: inline-block;`;
+      alignClass = 'yt-align-left';
+    } else if (align === 'right') {
+      alignStyle = `float: right; margin: 0.5rem 0 ${marginY} 1.5rem; display: inline-block;`;
+      alignClass = 'yt-align-right';
+    }
+
+    const wrapperStyle = `${widthStyle} max-width: 100%; ${alignStyle}`;
+    const wrapperClass = `article-youtube-wrapper ${widthClass} ${alignClass} ${spacingClass}`;
+
+    return [
+      'div',
+      {
+        'data-youtube-video': '',
+        'data-width': width,
+        'data-alignment': align,
+        'data-spacing': spacing,
+        class: wrapperClass,
+        style: wrapperStyle,
+      },
+      [
+        'iframe',
+        {
+          src: embedSrc,
+          class: 'article-embed-frame aspect-video w-full rounded-xl shadow-sm',
+          style: 'width: 100%; aspect-ratio: 16 / 9; border: 0;',
+          allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+          allowfullscreen: 'true',
+          loading: 'lazy',
+        },
+      ],
+    ];
+  },
+});
+
 export interface TiptapEditorProps {
   content: string;
   onChange: (html: string) => void;
@@ -197,6 +308,10 @@ export function TiptapEditor({
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [youtubeUrlInput, setYoutubeUrlInput] = useState('');
+  const [youtubeWidth, setYoutubeWidth] = useState<'100%' | '75%' | '50%'>('100%');
+  const [youtubeAlignment, setYoutubeAlignment] = useState<'center' | 'left' | 'right'>('center');
+  const [youtubeSpacing, setYoutubeSpacing] = useState<'normal' | 'compact' | 'large'>('normal');
+  const [editingYoutubeNode, setEditingYoutubeNode] = useState(false);
   const [isTextColorOpen, setIsTextColorOpen] = useState(false);
   const [isBgColorOpen, setIsBgColorOpen] = useState(false);
   const [customTextColor, setCustomTextColor] = useState('#1b7d95');
@@ -235,11 +350,8 @@ export function TiptapEditor({
       TableRowExtension,
       TableHeaderExtension,
       TableCellExtension,
-      YoutubeExtension.configure({
+      CustomYoutube.configure({
         inline: false,
-        HTMLAttributes: {
-          class: 'aspect-video w-full max-w-full rounded-xl my-4',
-        },
         nocookie: true,
       }),
     ],
@@ -281,16 +393,53 @@ export function TiptapEditor({
 
   function handleOpenYoutubeModal() {
     setYoutubeUrlInput('');
+    setYoutubeWidth('100%');
+    setYoutubeAlignment('center');
+    setYoutubeSpacing('normal');
+    setEditingYoutubeNode(false);
+    setIsYoutubeModalOpen(true);
+  }
+
+  function handleEditExistingYoutube() {
+    if (!editor) return;
+    const currentAttrs = editor.getAttributes('youtube') || {};
+    setYoutubeUrlInput(currentAttrs.src || '');
+    setYoutubeWidth((currentAttrs.width as any) || '100%');
+    setYoutubeAlignment((currentAttrs.alignment as any) || 'center');
+    setYoutubeSpacing((currentAttrs.spacing as any) || 'normal');
+    setEditingYoutubeNode(true);
     setIsYoutubeModalOpen(true);
   }
 
   function handleInsertYoutube() {
     if (!editor || !detectedVideoId) return;
     const cleanUrl = `https://www.youtube.com/watch?v=${detectedVideoId}`;
-    editor.commands.setYoutubeVideo({ src: cleanUrl });
-    toastSuccess('ইউটিউব ভিডিও সফলভাবে যুক্ত হয়েছে!');
+
+    if (editingYoutubeNode && editor.isActive('youtube')) {
+      editor
+        .chain()
+        .focus()
+        .updateAttributes('youtube', {
+          src: cleanUrl,
+          width: youtubeWidth,
+          alignment: youtubeAlignment,
+          spacing: youtubeSpacing,
+        })
+        .run();
+      toastSuccess('ইউটিউব ভিডিওর সাইজ ও সেটিংস সফলভাবে আপডেট হয়েছে!');
+    } else {
+      editor.commands.setYoutubeVideo({
+        src: cleanUrl,
+        width: youtubeWidth,
+        alignment: youtubeAlignment,
+        spacing: youtubeSpacing,
+      } as any);
+      toastSuccess('ইউটিউব ভিডিও সফলভাবে যুক্ত হয়েছে!');
+    }
+
     setIsYoutubeModalOpen(false);
     setYoutubeUrlInput('');
+    setEditingYoutubeNode(false);
   }
 
   function insertTable() {
@@ -967,6 +1116,159 @@ export function TiptapEditor({
         </div>
       )}
 
+      {/* Selected YouTube Video In-Editor Quick Controls Bar */}
+      {editor.isActive('youtube') && (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-rose-50 dark:bg-rose-950/20 border-b border-rose-200 dark:border-rose-800/40 text-xs animate-in fade-in duration-150">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-1.5 shrink-0">
+              <YoutubeIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" /> নির্বাচিত ভিডিও:
+            </span>
+
+            {/* Size preset buttons */}
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs">
+              <span className="text-[11px] text-slate-400 px-1 font-medium">সাইজ:</span>
+              {(['100%', '75%', '50%'] as const).map((w) => {
+                const currentWidth = editor.getAttributes('youtube').width || '100%';
+                const isCurrent = currentWidth === w;
+                const label = w === '100%' ? '১০০%' : w === '75%' ? '৭৫%' : '৫০%';
+                return (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() =>
+                      editor
+                        .chain()
+                        .focus()
+                        .updateAttributes('youtube', { width: w })
+                        .run()
+                    }
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      isCurrent
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Alignment buttons */}
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs">
+              <span className="text-[11px] text-slate-400 px-1 font-medium">অবস্থান:</span>
+              <button
+                type="button"
+                onClick={() =>
+                  editor
+                    .chain()
+                    .focus()
+                    .updateAttributes('youtube', { alignment: 'left' })
+                    .run()
+                }
+                className={`p-1 rounded text-xs transition-colors ${
+                  editor.getAttributes('youtube').alignment === 'left'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+                title="Float Left (বামে)"
+              >
+                <AlignLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  editor
+                    .chain()
+                    .focus()
+                    .updateAttributes('youtube', { alignment: 'center' })
+                    .run()
+                }
+                className={`p-1 rounded text-xs transition-colors ${
+                  editor.getAttributes('youtube').alignment === 'center' ||
+                  !editor.getAttributes('youtube').alignment
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+                title="Center (মাঝে)"
+              >
+                <AlignCenter className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  editor
+                    .chain()
+                    .focus()
+                    .updateAttributes('youtube', { alignment: 'right' })
+                    .run()
+                }
+                className={`p-1 rounded text-xs transition-colors ${
+                  editor.getAttributes('youtube').alignment === 'right'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+                title="Float Right (ডানে)"
+              >
+                <AlignRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Spacing buttons */}
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-xs">
+              <span className="text-[11px] text-slate-400 px-1 font-medium">ফাঁকা:</span>
+              {[
+                { label: 'কম', val: 'compact' },
+                { label: 'স্বাভাবিক', val: 'normal' },
+                { label: 'বেশি', val: 'large' },
+              ].map(({ label, val }) => {
+                const currentSpacing = editor.getAttributes('youtube').spacing || 'normal';
+                const isCurrent = currentSpacing === val;
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() =>
+                      editor
+                        .chain()
+                        .focus()
+                        .updateAttributes('youtube', { spacing: val })
+                        .run()
+                    }
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      isCurrent
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Edit / Remove Video */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleEditExistingYoutube}
+              className="px-2 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700"
+            >
+              ভিডিও এডিট / লিংক
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteSelection().run()}
+              className="p-1 rounded-lg text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors"
+              title="ভিডিও মুছুন (Delete video)"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Editor Content Area */}
       <EditorContent editor={editor} />
 
@@ -993,9 +1295,14 @@ export function TiptapEditor({
         onClose={() => {
           setIsYoutubeModalOpen(false);
           setYoutubeUrlInput('');
+          setEditingYoutubeNode(false);
         }}
-        title="ইউটিউব ভিডিও যুক্ত করুন (Insert YouTube Video)"
-        maxWidth="md"
+        title={
+          editingYoutubeNode
+            ? 'ইউটিউব ভিডিও এডিট ও সাইজ নির্ধারণ (Edit YouTube Video)'
+            : 'ইউটিউব ভিডিও যুক্ত করুন (Insert YouTube Video)'
+        }
+        maxWidth="lg"
       >
         <div className="flex flex-col gap-4">
           <div>
@@ -1015,21 +1322,126 @@ export function TiptapEditor({
             </p>
           </div>
 
+          {/* Size & Layout Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+            {/* Size Options */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                ভিডিও সাইজ (Width):
+              </label>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { label: '১০০%', val: '100%' as const },
+                  { label: '৭৫%', val: '75%' as const },
+                  { label: '৫০%', val: '50%' as const },
+                ].map(({ label, val }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setYoutubeWidth(val)}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                      youtubeWidth === val
+                        ? 'bg-[#1b7d95] text-white border-[#1b7d95] shadow-xs'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Alignment Options */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                অবস্থান (Alignment):
+              </label>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { label: 'মাঝে', val: 'center' as const, icon: AlignCenter },
+                  { label: 'বামে', val: 'left' as const, icon: AlignLeft },
+                  { label: 'ডানে', val: 'right' as const, icon: AlignRight },
+                ].map(({ label, val, icon: Icon }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setYoutubeAlignment(val)}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border flex items-center justify-center gap-1 transition-all ${
+                      youtubeAlignment === val
+                        ? 'bg-[#1b7d95] text-white border-[#1b7d95] shadow-xs'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Spacing Options */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                স্পেসিং / ফাঁকা জায়গা:
+              </label>
+              <div className="grid grid-cols-3 gap-1">
+                {[
+                  { label: 'কম', val: 'compact' as const },
+                  { label: 'স্বাভাবিক', val: 'normal' as const },
+                  { label: 'বেশি', val: 'large' as const },
+                ].map(({ label, val }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setYoutubeSpacing(val)}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-medium border text-center transition-all ${
+                      youtubeSpacing === val
+                        ? 'bg-[#1b7d95] text-white border-[#1b7d95] shadow-xs'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Validation & Live Preview */}
           {detectedVideoId ? (
-            <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col gap-2.5">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                <Check className="w-3.5 h-3.5" />
-                <span>সঠিক ভিডিও শনাক্ত হয়েছে (Video ID: {detectedVideoId})</span>
+            <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                <span className="flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>সঠিক ভিডিও শনাক্ত হয়েছে (Video ID: {detectedVideoId})</span>
+                </span>
+                <span className="text-[11px] font-normal text-slate-500">
+                  সাইজ: {youtubeWidth} • অবস্থান: {youtubeAlignment === 'center' ? 'মাঝে' : youtubeAlignment === 'left' ? 'বামে' : 'ডানে'} • ফাঁকা: {youtubeSpacing === 'compact' ? 'কম' : youtubeSpacing === 'large' ? 'বেশি' : 'স্বাভাবিক'}
+                </span>
               </div>
-              <div className="relative aspect-video w-full rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-black">
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${detectedVideoId}`}
-                  title="YouTube Preview"
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              <div
+                className={`w-full flex ${
+                  youtubeAlignment === 'left'
+                    ? 'justify-start'
+                    : youtubeAlignment === 'right'
+                    ? 'justify-end'
+                    : 'justify-center'
+                }`}
+              >
+                <div
+                  style={{ width: youtubeWidth }}
+                  className="transition-all duration-200 max-w-full"
+                >
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md bg-black">
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${detectedVideoId}`}
+                      title="YouTube Preview"
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           ) : youtubeUrlInput.trim().length > 0 ? (
@@ -1047,6 +1459,7 @@ export function TiptapEditor({
               onClick={() => {
                 setIsYoutubeModalOpen(false);
                 setYoutubeUrlInput('');
+                setEditingYoutubeNode(false);
               }}
             >
               বাতিল
@@ -1059,7 +1472,7 @@ export function TiptapEditor({
               onClick={handleInsertYoutube}
               leftIcon={<YoutubeIcon className="w-4 h-4" />}
             >
-              ভিডিও যুক্ত করুন
+              {editingYoutubeNode ? 'ভিডিও আপডেট করুন' : 'ভিডিও যুক্ত করুন'}
             </Button>
           </div>
         </div>

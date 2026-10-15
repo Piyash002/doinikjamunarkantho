@@ -21,7 +21,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       <div className="relative w-full">
         <select
           ref={ref}
-          className={`w-full appearance-none min-h-[44px] rounded-xl border pl-3.5 pr-10 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1b7d95]/30 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 cursor-pointer ${
+          className={`w-full appearance-none min-h-[48px] rounded-xl border pl-3.5 pr-10 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1b7d95]/30 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 cursor-pointer ${
             error
               ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20'
               : 'border-slate-300 dark:border-slate-700 focus:border-[#1b7d95]'

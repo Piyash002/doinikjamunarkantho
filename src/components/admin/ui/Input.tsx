@@ -24,7 +24,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           value={value}
           disabled={disabled}
-          className={`w-full min-h-[44px] rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1b7d95]/30 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 ${
+          className={`w-full min-h-[48px] rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1b7d95]/30 disabled:opacity-50 disabled:bg-slate-50 dark:disabled:bg-slate-800/50 ${
             leftIcon ? 'pl-10' : 'pl-3.5'
           } ${showClear || rightIcon ? 'pr-10' : 'pr-3.5'} ${
             error

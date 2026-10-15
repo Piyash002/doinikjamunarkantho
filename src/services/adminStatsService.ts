@@ -34,24 +34,46 @@ export async function getAdminDashboardStats(daysRange = 7) {
     Post.countDocuments({ isDeleted: false, status: 'scheduled' }),
     Post.aggregate([
       { $match: { isDeleted: false } },
-      { $group: { _id: null, totalViews: { $sum: '$views' } } },
+      {
+        $group: {
+          _id: null,
+          totalViews: {
+            $sum: { $max: [{ $ifNull: ['$views', 0] }, { $ifNull: ['$viewCount', 0] }] }
+          }
+        }
+      },
     ]),
     Post.aggregate([
-      { $match: { isDeleted: false, publishedAt: { $gte: startOfToday } } },
-      { $group: { _id: null, totalViews: { $sum: '$views' } } },
+      {
+        $match: {
+          isDeleted: false,
+          $or: [
+            { publishedAt: { $gte: startOfToday } },
+            { updatedAt: { $gte: startOfToday } },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalViews: {
+            $sum: { $max: [{ $ifNull: ['$views', 0] }, { $ifNull: ['$viewCount', 0] }] }
+          }
+        }
+      },
     ]),
     Category.countDocuments({ isActive: true }),
     Author.countDocuments({ isActive: true }),
     AdSlot.countDocuments({ isActive: true }),
     Post.find({ isDeleted: false, status: 'published' })
-      .select('title slug category views publishedAt')
+      .select('title slug category views viewCount publishedAt createdAt author')
       .sort({ views: -1 })
       .limit(10)
       .lean(),
     Post.find({ isDeleted: false })
-      .select('title slug category status updatedAt publishedAt author views')
+      .select('title slug category status updatedAt publishedAt author views viewCount')
       .sort({ updatedAt: -1 })
-      .limit(6)
+      .limit(8)
       .lean(),
     Post.find({ isDeleted: false, status: 'draft', updatedAt: { $lt: threeDaysAgo } })
       .select('title slug category updatedAt author')
@@ -65,7 +87,15 @@ export async function getAdminDashboardStats(daysRange = 7) {
       .lean(),
     Post.aggregate([
       { $match: { isDeleted: false, status: 'published' } },
-      { $group: { _id: '$category', count: { $sum: 1 }, views: { $sum: '$views' } } },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+          views: {
+            $sum: { $max: [{ $ifNull: ['$views', 0] }, { $ifNull: ['$viewCount', 0] }] }
+          }
+        }
+      },
       { $sort: { count: -1 } },
       { $limit: 8 },
     ]),
@@ -84,7 +114,9 @@ export async function getAdminDashboardStats(daysRange = 7) {
     {
       $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$publishedAt' } },
-        views: { $sum: '$views' },
+        views: {
+          $sum: { $max: [{ $ifNull: ['$views', 0] }, { $ifNull: ['$viewCount', 0] }] }
+        },
         posts: { $sum: 1 },
       },
     },
@@ -128,8 +160,16 @@ export async function getAdminDashboardStats(daysRange = 7) {
       count: c.count,
       views: c.views,
     })),
-    topPosts,
-    recentPosts,
+    topPosts: topPosts.map((p) => ({
+      ...p,
+      _id: String(p._id),
+      views: Math.max(Number(p.views) || 0, Number(p.viewCount) || 0),
+    })),
+    recentPosts: recentPosts.map((p) => ({
+      ...p,
+      _id: String(p._id),
+      views: Math.max(Number(p.views) || 0, Number(p.viewCount) || 0),
+    })),
     needsAttention: {
       staleDrafts,
       upcomingScheduled,

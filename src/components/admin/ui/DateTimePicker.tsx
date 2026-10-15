@@ -52,7 +52,7 @@ export function DateTimePicker({
         value={formattedValue}
         onChange={handleChange}
         disabled={disabled}
-        className={`w-full min-h-[44px] rounded-xl border pl-10 pr-3.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1b7d95]/30 disabled:opacity-50 ${
+        className={`w-full min-h-[48px] rounded-xl border pl-10 pr-3.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-[16px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1b7d95]/30 disabled:opacity-50 ${
           error
             ? 'border-rose-500'
             : 'border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600'

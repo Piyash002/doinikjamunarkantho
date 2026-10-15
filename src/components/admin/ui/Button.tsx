@@ -50,7 +50,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     // Size styles (all enforce min-height 44px on mobile for touch compliance)
     const sizeStyles: Record<ButtonSize, string> = {
-      sm: 'min-h-[40px] sm:min-h-[36px] px-3 text-xs sm:text-sm gap-1.5',
+      sm: 'min-h-[44px] sm:min-h-[36px] px-3 text-xs sm:text-sm gap-1.5',
       md: 'min-h-[44px] px-4 text-sm sm:text-base gap-2',
       lg: 'min-h-[50px] px-6 text-base gap-2.5',
     };

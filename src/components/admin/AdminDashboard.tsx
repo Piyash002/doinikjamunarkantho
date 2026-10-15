@@ -37,6 +37,8 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function AdminDashboard() {
   const [daysRange, setDaysRange] = useState(7);
+  const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
+  const [postsTab, setPostsTab] = useState<'recent' | 'top'>('recent');
 
   const { data, error, isLoading, mutate } = useSWR(
     `/api/admin/stats?days=${daysRange}`,
@@ -66,29 +68,32 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex rounded-xl p-1 bg-slate-200/60 dark:bg-slate-800 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setDaysRange(7)}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
-                daysRange === 7
-                  ? 'bg-white dark:bg-slate-900 text-[#1b7d95] shadow-xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              7 Days
-            </button>
-            <button
-              type="button"
-              onClick={() => setDaysRange(30)}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
-                daysRange === 30
-                  ? 'bg-white dark:bg-slate-900 text-[#1b7d95] shadow-xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              30 Days
-            </button>
+          {/* Mobile Date Range Bottom Sheet Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsDateSheetOpen(true)}
+            className="sm:hidden touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold border border-slate-200 dark:border-slate-700"
+          >
+            <Calendar className="w-3.5 h-3.5 text-[#1b7d95]" />
+            <span>{daysRange} Days</span>
+          </button>
+
+          {/* Desktop Segmented Buttons */}
+          <div className="hidden sm:inline-flex rounded-xl p-1 bg-slate-200/60 dark:bg-slate-800 text-xs font-semibold">
+            {[7, 14, 30, 90].map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setDaysRange(d)}
+                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                  daysRange === d
+                    ? 'bg-white dark:bg-slate-900 text-[#1b7d95] shadow-xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                {d}D
+              </button>
+            ))}
           </div>
 
           <Button
@@ -107,6 +112,57 @@ export default function AdminDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Mobile Date Range Bottom Sheet Modal */}
+      {isDateSheetOpen && (
+        <div className="sm:hidden">
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs animate-backdrop"
+            onClick={() => setIsDateSheetOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] flex flex-col gap-3 animate-bottom-sheet"
+          >
+            <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 mx-auto mb-1 shrink-0" />
+            <h3 className="font-bold text-base text-slate-900 dark:text-slate-100">সময়কাল নির্বাচন করুন (Select Range)</h3>
+            <div className="flex flex-col gap-2">
+              {[
+                { label: 'গত ৭ দিন (Last 7 Days)', value: 7 },
+                { label: 'গত ১৪ দিন (Last 14 Days)', value: 14 },
+                { label: 'গত ৩০ দিন (Last 30 Days)', value: 30 },
+                { label: 'গত ৩ মাস (Last 90 Days)', value: 90 },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setDaysRange(opt.value);
+                    setIsDateSheetOpen(false);
+                  }}
+                  className={`w-full min-h-[48px] px-4 py-3 text-left rounded-2xl text-sm font-bold flex items-center justify-between transition-colors ${
+                    daysRange === opt.value
+                      ? 'bg-[#1b7d95]/15 text-[#1b7d95] dark:text-sky-300 border border-[#1b7d95]/30'
+                      : 'bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  {daysRange === opt.value && <span className="w-2.5 h-2.5 rounded-full bg-[#1b7d95]" />}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsDateSheetOpen(false)}
+              className="mt-2 min-h-[48px] w-full rounded-2xl bg-slate-100 dark:bg-slate-800 font-bold text-sm text-slate-600 dark:text-slate-300"
+            >
+              বন্ধ করুন (Close)
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards: 2-col on mobile, 4-col on desktop */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -129,7 +185,7 @@ export default function AdminDashboard() {
             <StatCard
               title="Total Reader Views"
               value={stats.totals.totalViews}
-              hint={`${stats.totals.todayViews} views today`}
+              hint={`Database Total • ${stats.totals.todayViews.toLocaleString()} today`}
               icon={<Eye className="w-5 h-5" />}
               accentColor="emerald"
             />
@@ -328,16 +384,42 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Articles & Top Stories List */}
+        {/* Tabbed Articles Panel: Recent vs Top Viewed with Exact Views */}
         <div className="lg:col-span-2 p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-                Recently Edited Articles
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-300">Latest activity across all desks</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPostsTab('recent')}
+                  className={`text-sm sm:text-base font-bold pb-1 transition-colors border-b-2 ${
+                    postsTab === 'recent'
+                      ? 'border-[#1b7d95] text-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Recently Edited
+                </button>
+                <span className="text-slate-300 dark:text-slate-700">|</span>
+                <button
+                  type="button"
+                  onClick={() => setPostsTab('top')}
+                  className={`text-sm sm:text-base font-bold pb-1 transition-colors border-b-2 ${
+                    postsTab === 'top'
+                      ? 'border-[#1b7d95] text-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Top Viewed Articles (সর্বাধিক পঠিত)
+                </button>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
+                {postsTab === 'recent'
+                  ? 'Latest activity across all editorial desks'
+                  : 'Highest read articles with verified database view counts'}
+              </p>
             </div>
-            <Link href="/admin/posts" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1b7d95] hover:underline">
+            <Link href="/admin/posts" className="inline-flex items-center gap-1 text-xs font-semibold text-[#1b7d95] hover:underline shrink-0">
               <span>View All</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -346,8 +428,8 @@ export default function AdminDashboard() {
           <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/80">
             {isLoading || !stats ? (
               <Skeleton className="h-40 w-full rounded-xl" />
-            ) : stats.recentPosts?.length > 0 ? (
-              stats.recentPosts.map((post: any) => (
+            ) : (postsTab === 'recent' ? stats.recentPosts : stats.topPosts)?.length > 0 ? (
+              (postsTab === 'recent' ? stats.recentPosts : stats.topPosts).map((post: any) => (
                 <div key={post._id} className="py-3 flex items-center justify-between gap-3">
                   <div className="flex flex-col min-w-0 flex-1">
                     <Link
@@ -356,27 +438,34 @@ export default function AdminDashboard() {
                     >
                       {post.title}
                     </Link>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span>{post.category || 'General'}</span>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{post.category || 'General'}</span>
                       <span>•</span>
                       <span>By {post.author || 'Desk'}</span>
                       <span>•</span>
-                      <span>{new Date(post.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span>{new Date(post.publishedAt || post.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge
-                      variant={
-                        post.status === 'published'
-                          ? 'success'
-                          : post.status === 'scheduled'
-                          ? 'info'
-                          : 'warning'
-                      }
-                    >
-                      {post.status}
-                    </Badge>
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200/50 dark:border-emerald-800/40">
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{new Intl.NumberFormat('en-US').format(post.views || 0)} views</span>
+                    </span>
+
+                    {post.status && (
+                      <Badge
+                        variant={
+                          post.status === 'published'
+                            ? 'success'
+                            : post.status === 'scheduled'
+                            ? 'info'
+                            : 'warning'
+                        }
+                      >
+                        {post.status}
+                      </Badge>
+                    )}
                     <Link
                       href={`/admin/posts/${post._id}/edit`}
                       className="text-xs font-semibold text-[#1b7d95] hover:underline hidden sm:inline"
@@ -387,7 +476,9 @@ export default function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">No recent articles found.</div>
+              <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                {postsTab === 'recent' ? 'No recent articles found.' : 'No top viewed articles found.'}
+              </div>
             )}
           </div>
         </div>

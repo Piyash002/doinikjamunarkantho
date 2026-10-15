@@ -268,6 +268,22 @@ export default function AdsPage() {
             />
           </FormField>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField label="Campaign Start Date (Optional)">
+              <DateTimePicker
+                value={startDate}
+                onChange={setStartDate}
+              />
+            </FormField>
+
+            <FormField label="Campaign End Date (Optional)">
+              <DateTimePicker
+                value={endDate}
+                onChange={setEndDate}
+              />
+            </FormField>
+          </div>
+
           <Switch
             checked={isActive}
             onChange={setIsActive}

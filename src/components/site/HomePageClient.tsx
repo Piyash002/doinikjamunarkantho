@@ -6,6 +6,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import ArticleSiteHeader from "./ArticleSiteHeader";
 import HomeCategorySections, { CategorySectionItem } from "./HomeCategorySections";
+import {
+  toBanglaNumber,
+  formatBanglaDate,
+  formatBanglaTime,
+} from "@/src/lib/dateUtils";
 
 type CategoryInput = string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined;
 
@@ -21,6 +26,7 @@ type PostLike = {
   publishedAt?: string | Date;
   createdAt?: string | Date;
   views?: number;
+  viewCount?: number;
   isBreaking?: boolean;
   isFeatured?: boolean;
   isTrending?: boolean;
@@ -37,6 +43,8 @@ type StoryItem = {
   image: string;
   time: string;
   views: number;
+  publishedAt?: string | Date;
+  createdAt?: string | Date;
   categoryKey: string;
 };
 
@@ -84,14 +92,6 @@ const FALLBACK_CATEGORIES: string[] = [
 
 const FALLBACK_TRENDING: string[] = ["রাজনীতি", "খেলা", "অর্থনীতি", "সারাদেশ", "টেকনোলজি"];
 const DEFAULT_SITE_NAME = "দৈনিক যমুনা কণ্ঠ";
-
-function toBanglaNumber(value: number | string) {
-  const map: Record<string, string> = { 0: "০", 1: "১", 2: "২", 3: "৩", 4: "৪", 5: "৫", 6: "৬", 7: "৭", 8: "৮", 9: "৯" };
-  return String(value)
-    .split("")
-    .map((char) => map[char] ?? char)
-    .join("");
-}
 
 function toEnglishPhone(phone = "") {
   const bn = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
@@ -175,7 +175,9 @@ function toStoryItem(post: PostLike | null | undefined, index = 0, nowValue?: nu
     excerpt: post?.excerpt || "",
     image: getPostImage(post, "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80"),
     time: buildRelativeTime(post?.publishedAt || post?.createdAt, nowValue),
-    views: post?.views || 0,
+    views: Math.max(Number(post?.views) || 0, Number(post?.viewCount) || 0),
+    publishedAt: post?.publishedAt,
+    createdAt: post?.createdAt,
     categoryKey: normalizeText(String(post?.category || post?.categoryName || "")),
   };
 }
@@ -457,8 +459,22 @@ export default function HomePageClient({
               <span className="eyebrow"><i /> আজকের প্রধান খবর</span>
               <h1>{leadStory.title}</h1>
               <p>{leadStory.excerpt || "সবার আগে গুরুত্বপূর্ণ খবর পড়ুন।"}</p>
-              <div className="story-meta">
-                <span>{leadStory.category || "জাতীয়"}</span><i /> <span>{leadStory.time || "এই মুহূর্তে"}</span>
+              <div className="story-meta flex items-center gap-2 flex-wrap text-xs text-slate-500">
+                <span className="font-bold text-[#1b7d95] dark:text-teal-400">{leadStory.category || "জাতীয়"}</span>
+                {leadStory.publishedAt && (
+                  <>
+                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                    <span>{formatBanglaDate(leadStory.publishedAt)}</span>
+                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                    <span>{formatBanglaTime(leadStory.publishedAt)}</span>
+                  </>
+                )}
+                <span className="text-slate-400">({leadStory.time || "এই মুহূর্তে"})</span>
+                {leadStory.views > 0 && (
+                  <span className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-md ml-auto">
+                    👁️ {toBanglaNumber(leadStory.views)} ভিউ
+                  </span>
+                )}
               </div>
               <Link className="read-more" href={getStoryUrl(leadStory)}>
                 বিস্তারিত পড়ুন <span aria-hidden="true">↗</span>
@@ -617,7 +633,24 @@ export default function HomePageClient({
                       <span className="story-category">{story.category}</span>
                       <h3><Link href={getStoryUrl(story)}>{story.title}</Link></h3>
                       <p>{story.excerpt || "পুরো খবর পড়ুন"}</p>
-                      <span className="story-time">{story.time}</span>
+                      <div className="flex items-center justify-between gap-2 mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-400 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {story.publishedAt && (
+                            <>
+                              <span>{formatBanglaDate(story.publishedAt)}</span>
+                              <span>•</span>
+                              <span>{formatBanglaTime(story.publishedAt)}</span>
+                              <span>•</span>
+                            </>
+                          )}
+                          <span>({story.time})</span>
+                        </div>
+                        {story.views > 0 && (
+                          <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 bg-[#1b7d95]/10 px-2 py-0.5 rounded-md shrink-0">
+                            👁️ {toBanglaNumber(story.views)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </article>
                 ))}
@@ -651,8 +684,17 @@ export default function HomePageClient({
               {(activeTab === "সর্বশেষ" ? allStories.slice(0, 5) : sortedPopular.slice(0, 5)).map((story, index) => (
                 <li key={story.id || `${story.title}-${index}`}>
                   <span className="list-number">{toBanglaNumber(index + 1).padStart(2, "০")}</span>
-                  <Link href={getStoryUrl(story)}>{story.title}</Link>
-                  {activeTab === "সর্বশেষ" && <span className="sidebar-time">{story.time}</span>}
+                  <div className="flex-1 min-w-0">
+                    <Link href={getStoryUrl(story)}>{story.title}</Link>
+                    <div className="flex items-center justify-between text-xs text-slate-400 mt-1 flex-wrap gap-1">
+                      <span className="sidebar-time">{story.time}</span>
+                      {story.views > 0 && (
+                        <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 bg-[#1b7d95]/10 px-1.5 py-0.5 rounded-md text-[11px]">
+                          👁️ {toBanglaNumber(story.views)} ভিউ
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </li>
               ))}
             </ol>

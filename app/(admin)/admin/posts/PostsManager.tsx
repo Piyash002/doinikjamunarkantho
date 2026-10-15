@@ -16,6 +16,8 @@ import {
   RotateCcw,
   CheckCircle,
   Eye,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 
 import { PageHeader } from '@/src/components/admin/ui/PageHeader';
@@ -430,7 +432,7 @@ export default function PostsManager() {
   ];
 
   // Mobile Stacked Card View Render
-  function renderMobileCard(post: any, isSelected: boolean) {
+  function renderMobileCard(post: any, isSelected: boolean, onToggleSelect?: () => void) {
     return (
       <div
         className={`p-3.5 rounded-2xl border transition-all ${
@@ -440,6 +442,22 @@ export default function PostsManager() {
         }`}
       >
         <div className="flex items-start gap-3">
+          {/* Mobile Checkbox for Selection */}
+          {onToggleSelect && (
+            <button
+              type="button"
+              onClick={onToggleSelect}
+              className="touch-target p-1 -ml-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 shrink-0 self-center"
+              aria-label={isSelected ? 'Deselect article' : 'Select article'}
+            >
+              {isSelected ? (
+                <CheckSquare className="w-5 h-5 text-[#1b7d95]" />
+              ) : (
+                <Square className="w-5 h-5" />
+              )}
+            </button>
+          )}
+
           {/* Card Thumbnail */}
           {post.featuredImage?.url ? (
             <div className="relative w-20 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">

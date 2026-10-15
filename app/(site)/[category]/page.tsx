@@ -19,43 +19,12 @@ type CategoryPageProps = {
   searchParams?: Promise<{ page?: string; sub?: string }>;
 };
 
-const BANGLA_NUMBERS: Record<string, string> = {
-  0: '০',
-  1: '১',
-  2: '২',
-  3: '৩',
-  4: '৪',
-  5: '৫',
-  6: '৬',
-  7: '৭',
-  8: '৮',
-  9: '৯',
-};
-
-function toBanglaNumber(value: number | string): string {
-  return String(value)
-    .split('')
-    .map((char) => BANGLA_NUMBERS[char] ?? char)
-    .join('');
-}
-
-function formatRelativeTime(dateValue?: string | Date | null): string {
-  if (!dateValue) return 'এইমাত্র';
-  const diffMs = Date.now() - new Date(dateValue).getTime();
-  const minutes = Math.max(0, Math.round(diffMs / 60000));
-  const hours = Math.max(0, Math.round(diffMs / 3600000));
-  const days = Math.max(0, Math.round(diffMs / 86400000));
-
-  if (minutes < 60) return `${toBanglaNumber(minutes || 1)} মিনিট আগে`;
-  if (hours < 24) return `${toBanglaNumber(hours)} ঘণ্টা আগে`;
-  if (days < 30) return `${toBanglaNumber(days)} দিন আগে`;
-
-  return new Date(dateValue).toLocaleDateString('bn-BD', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+import {
+  toBanglaNumber,
+  formatBanglaDate,
+  formatBanglaTime,
+  formatRelativeTime,
+} from '@/src/lib/dateUtils';
 
 function parseKickerAndTitle(
   fullTitle: string,
@@ -513,12 +482,22 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                               {leadStory.lead || leadStory.excerpt || 'বিস্তারিত প্রতিবেদন পড়তে ক্লিক করুন...'}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3 mt-4 text-xs text-slate-400 font-medium">
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                              {leadStory.category || categoryName}
-                            </span>
-                            <span>•</span>
-                            <span>{formatRelativeTime(leadStory.publishedAt || leadStory.createdAt)}</span>
+                          <div className="flex items-center justify-between gap-3 mt-4 text-xs text-slate-500 font-medium flex-wrap">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                                {leadStory.category || categoryName}
+                              </span>
+                              <span>•</span>
+                              <span>{formatBanglaDate(leadStory.publishedAt || leadStory.createdAt)}</span>
+                              <span>•</span>
+                              <span>{formatBanglaTime(leadStory.publishedAt || leadStory.createdAt)}</span>
+                              <span>({formatRelativeTime(leadStory.publishedAt || leadStory.createdAt)})</span>
+                            </div>
+                            {(leadStory.views || leadStory.viewCount) ? (
+                              <span className="inline-flex items-center gap-1 font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-md">
+                                👁️ {toBanglaNumber(leadStory.views || leadStory.viewCount)} ভিউ
+                              </span>
+                            ) : null}
                           </div>
                         </div>
 
@@ -572,9 +551,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                                 {title}
                               </h3>
                             </Link>
-                            <span className="text-xs text-slate-400 mt-2 block">
-                              {formatRelativeTime(story.publishedAt || story.createdAt)}
-                            </span>
+                            <div className="flex items-center justify-between gap-2 mt-2 text-xs text-slate-400">
+                              <span>{formatBanglaDate(story.publishedAt || story.createdAt)} ({formatRelativeTime(story.publishedAt || story.createdAt)})</span>
+                              {(story.views || story.viewCount) ? (
+                                <span className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 shrink-0">
+                                  👁️ {toBanglaNumber(story.views || story.viewCount)}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
 
                           {/* Thumbnail Right */}
@@ -639,9 +623,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                                 {story.excerpt}
                               </p>
                             )}
-                            <span className="text-xs text-slate-400 mt-1.5 block">
-                              {formatRelativeTime(story.publishedAt || story.createdAt)}
-                            </span>
+                            <div className="flex items-center justify-between gap-2 mt-1.5 text-xs text-slate-400">
+                              <span>{formatBanglaDate(story.publishedAt || story.createdAt)} ({formatRelativeTime(story.publishedAt || story.createdAt)})</span>
+                              {(story.views || story.viewCount) ? (
+                                <span className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 shrink-0">
+                                  👁️ {toBanglaNumber(story.views || story.viewCount)}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
 
                           <Link

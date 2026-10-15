@@ -3,7 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight, Clock, MapPin, Search } from 'lucide-react';
+import { ChevronRight, Clock, Calendar, Eye, MapPin, Search } from 'lucide-react';
+import {
+  toBanglaNumber,
+  formatBanglaDate,
+  formatBanglaTime,
+  formatRelativeTime,
+} from '@/src/lib/dateUtils';
 
 export interface CategoryPostItem {
   _id: string;
@@ -14,6 +20,7 @@ export interface CategoryPostItem {
   featuredImage?: { url?: string } | null;
   image?: string;
   views?: number;
+  viewCount?: number;
   publishedAt?: string | Date | null;
   createdAt?: string | Date | null;
 }
@@ -43,45 +50,6 @@ const BD_DIVISIONS = [
   'রংপুর',
   'ময়মনসিংহ',
 ];
-
-function toBanglaNumber(value: number | string) {
-  const map: Record<string, string> = {
-    0: '০',
-    1: '১',
-    2: '২',
-    3: '৩',
-    4: '৪',
-    5: '৫',
-    6: '৬',
-    7: '৭',
-    8: '৮',
-    9: '৯',
-  };
-  return String(value)
-    .split('')
-    .map((char) => map[char] ?? char)
-    .join('');
-}
-
-function formatRelativeTime(dateValue?: string | Date | null) {
-  if (!dateValue) return 'এইমাত্র';
-  const date = new Date(dateValue);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const minutes = Math.max(0, Math.round(diffMs / 60000));
-  const hours = Math.max(0, Math.round(diffMs / 3600000));
-  const days = Math.max(0, Math.round(diffMs / 86400000));
-
-  if (minutes < 60) return `${toBanglaNumber(minutes || 1)} মিনিট আগে`;
-  if (hours < 24) return `${toBanglaNumber(hours)} ঘণ্টা আগে`;
-  if (days < 7) return `${toBanglaNumber(days)} দিন আগে`;
-
-  return date.toLocaleDateString('bn-BD', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
 
 function getStoryUrl(post: CategoryPostItem, categorySlug: string) {
   const identifier = post.slug || post._id;
@@ -214,9 +182,25 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                           {posts[0].excerpt}
                         </p>
                       )}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-3 font-medium">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{formatRelativeTime(posts[0].publishedAt || posts[0].createdAt)}</span>
+                      <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2 text-xs text-slate-500">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-300 font-medium">
+                            <Calendar className="w-3.5 h-3.5 text-[#1b7d95]" />
+                            <span>{formatBanglaDate(posts[0].publishedAt || posts[0].createdAt)}</span>
+                          </span>
+                          <span className="text-slate-300 dark:text-slate-700">•</span>
+                          <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{formatBanglaTime(posts[0].publishedAt || posts[0].createdAt)}</span>
+                          </span>
+                          <span className="text-slate-400 text-[11px]">
+                            ({formatRelativeTime(posts[0].publishedAt || posts[0].createdAt)})
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 bg-[#1b7d95]/10 dark:bg-teal-950/40 px-2 py-0.5 rounded-md">
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{toBanglaNumber(posts[0].views || 0)} ভিউ</span>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -248,9 +232,25 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                             {post.title}
                           </h4>
                         </Link>
-                        <span className="text-[11px] text-slate-400 dark:text-slate-500 mt-auto">
-                          {formatRelativeTime(post.publishedAt || post.createdAt)}
-                        </span>
+                        <div className="flex flex-col gap-1 mt-auto pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="inline-flex items-center gap-1 text-slate-600 dark:text-slate-300 truncate">
+                              <Calendar className="w-3 h-3 text-[#1b7d95] shrink-0" />
+                              <span>{formatBanglaDate(post.publishedAt || post.createdAt)}</span>
+                            </span>
+                            <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 shrink-0">
+                              <Eye className="w-3 h-3 shrink-0" />
+                              <span>{toBanglaNumber(post.views || 0)}</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-1 text-[10px] text-slate-400">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{formatBanglaTime(post.publishedAt || post.createdAt)}</span>
+                            </span>
+                            <span>{formatRelativeTime(post.publishedAt || post.createdAt)}</span>
+                          </div>
+                        </div>
                       </article>
                     ))}
                   </div>
@@ -273,9 +273,13 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                           <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#1b7d95] dark:group-hover:text-teal-400 line-clamp-2 leading-snug">
                             {post.title}
                           </h4>
-                          <span className="text-[11px] text-slate-400 mt-1 block">
-                            {formatRelativeTime(post.publishedAt || post.createdAt)}
-                          </span>
+                          <div className="flex items-center justify-between gap-1.5 mt-1.5 text-[11px] text-slate-400">
+                            <span className="truncate">{formatBanglaDate(post.publishedAt || post.createdAt)}</span>
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#1b7d95] dark:text-teal-400 shrink-0">
+                              <Eye className="w-3 h-3" />
+                              <span>{toBanglaNumber(post.views || 0)}</span>
+                            </span>
+                          </div>
                         </div>
                         <div className="relative w-20 h-16 sm:w-22 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
                           <Image
@@ -319,9 +323,26 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                           {posts[0].excerpt}
                         </p>
                       )}
-                      <span className="text-xs text-slate-400 mt-2 block font-medium">
-                        {formatRelativeTime(posts[0].publishedAt || posts[0].createdAt)}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                            <Calendar className="w-3.5 h-3.5 text-[#1b7d95]" />
+                            <span>{formatBanglaDate(posts[0].publishedAt || posts[0].createdAt)}</span>
+                          </span>
+                          <span className="text-slate-300 dark:text-slate-700">•</span>
+                          <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{formatBanglaTime(posts[0].publishedAt || posts[0].createdAt)}</span>
+                          </span>
+                          <span className="text-slate-400 text-[11px]">
+                            ({formatRelativeTime(posts[0].publishedAt || posts[0].createdAt)})
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 bg-[#1b7d95]/10 dark:bg-teal-950/40 px-2 py-0.5 rounded-md">
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{toBanglaNumber(posts[0].views || 0)} ভিউ</span>
+                        </span>
+                      </div>
                     </article>
                   )}
                 </div>
@@ -338,9 +359,13 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                           <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#1b7d95] dark:group-hover:text-teal-400 line-clamp-2 leading-snug">
                             {post.title}
                           </h4>
-                          <span className="text-[11px] text-slate-400 mt-1 block">
-                            {formatRelativeTime(post.publishedAt || post.createdAt)}
-                          </span>
+                          <div className="flex items-center justify-between gap-1.5 mt-1.5 text-[11px] text-slate-400">
+                            <span className="truncate">{formatBanglaDate(post.publishedAt || post.createdAt)}</span>
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#1b7d95] dark:text-teal-400 shrink-0">
+                              <Eye className="w-3 h-3" />
+                              <span>{toBanglaNumber(post.views || 0)}</span>
+                            </span>
+                          </div>
                         </div>
                         <div className="relative w-20 h-16 sm:w-22 sm:h-16 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
                           <Image
@@ -393,9 +418,28 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                         {post.excerpt}
                       </p>
                     )}
-                    <span className="text-[11px] text-slate-400 mt-auto">
-                      {formatRelativeTime(post.publishedAt || post.createdAt)}
-                    </span>
+                    <div className="flex flex-col gap-2 mt-auto pt-2.5 border-t border-slate-200/70 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-slate-200">
+                            <Calendar className="w-3.5 h-3.5 text-[#1b7d95] shrink-0" />
+                            <span>{formatBanglaDate(post.publishedAt || post.createdAt)}</span>
+                          </span>
+                          <span className="text-slate-300 dark:text-slate-700">•</span>
+                          <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <span>{formatBanglaTime(post.publishedAt || post.createdAt)}</span>
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 bg-[#1b7d95]/10 dark:bg-teal-950/40 px-2 py-0.5 rounded-md">
+                          <Eye className="w-3.5 h-3.5 shrink-0" />
+                          <span>{toBanglaNumber(post.views || 0)} ভিউ</span>
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">
+                        {formatRelativeTime(post.publishedAt || post.createdAt)}
+                      </span>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -432,9 +476,25 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                           {posts[0].excerpt}
                         </p>
                       )}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 mt-2.5 font-medium">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{formatRelativeTime(posts[0].publishedAt || posts[0].createdAt)}</span>
+                      <div className="flex flex-wrap items-center justify-between gap-2 mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-1.5 flex-wrap font-medium">
+                          <span className="inline-flex items-center gap-1 text-slate-700 dark:text-slate-200">
+                            <Calendar className="w-3.5 h-3.5 text-[#1b7d95]" />
+                            <span>{formatBanglaDate(posts[0].publishedAt || posts[0].createdAt)}</span>
+                          </span>
+                          <span className="text-slate-300 dark:text-slate-700">•</span>
+                          <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span>{formatBanglaTime(posts[0].publishedAt || posts[0].createdAt)}</span>
+                          </span>
+                          <span className="text-slate-400 text-[11px]">
+                            ({formatRelativeTime(posts[0].publishedAt || posts[0].createdAt)})
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 font-bold text-[#1b7d95] dark:text-teal-400 bg-[#1b7d95]/10 dark:bg-teal-950/40 px-2.5 py-0.5 rounded-md">
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>{toBanglaNumber(posts[0].views || 0)} ভিউ</span>
+                        </span>
                       </div>
                     </article>
                   )}
@@ -455,9 +515,17 @@ export default function HomeCategorySections({ sections }: HomeCategorySectionsP
                           <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#1b7d95] dark:group-hover:text-teal-400 line-clamp-2 leading-snug transition-colors">
                             {post.title}
                           </h4>
-                          <span className="text-[11px] text-slate-400 mt-1.5 block font-medium">
-                            {formatRelativeTime(post.publishedAt || post.createdAt)}
-                          </span>
+                          <div className="flex items-center justify-between gap-2 mt-1.5 text-[11px] text-slate-400 font-medium">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>{formatBanglaDate(post.publishedAt || post.createdAt)}</span>
+                              <span>•</span>
+                              <span>{formatBanglaTime(post.publishedAt || post.createdAt)}</span>
+                            </div>
+                            <span className="inline-flex items-center gap-1 text-[#1b7d95] dark:text-teal-400 font-semibold shrink-0">
+                              <Eye className="w-3 h-3" />
+                              <span>{toBanglaNumber(post.views || 0)}</span>
+                            </span>
+                          </div>
                         </div>
 
                         <div className="relative w-24 h-16 sm:w-28 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800 shadow-xs">

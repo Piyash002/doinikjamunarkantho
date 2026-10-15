@@ -16,6 +16,21 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
+  // Responsive sidebar collapse: collapsed on tablet (768px-1023px), expanded on desktop (>=1024px)
+  React.useEffect(() => {
+    function handleResize() {
+      if (typeof window === 'undefined') return;
+      if (window.innerWidth >= 768 && window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true);
+      } else if (window.innerWidth >= 1024) {
+        setIsSidebarCollapsed(false);
+      }
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // If on login page, render raw without admin shell chrome
   if (pathname === '/admin/login') {
     return (
@@ -35,8 +50,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           {/* Command Palette shortcut (Ctrl/Cmd+K) */}
           <CommandPalette />
 
-          {/* Desktop & Tablet Sidebar (Hidden on Mobile < 1024px) */}
-          <div className="hidden lg:flex shrink-0">
+          {/* Desktop & Tablet Sidebar (Collapsed icon-only on tablet 768-1023px, full on >=1024px) */}
+          <div className="hidden md:flex shrink-0">
             <AdminSidebar
               isCollapsed={isSidebarCollapsed}
               onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}

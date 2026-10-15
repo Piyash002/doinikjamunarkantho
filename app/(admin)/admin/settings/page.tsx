@@ -17,6 +17,7 @@ import {
   Palette,
   ExternalLink,
   Sparkles,
+  ChevronDown,
 } from 'lucide-react';
 
 import { PageHeader } from '@/src/components/admin/ui/PageHeader';
@@ -88,6 +89,29 @@ export default function SettingsPage() {
 
   // 7. Integrations
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState('');
+
+  // Mobile Accordion Sections
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    general: true,
+    contact: false,
+    social: false,
+    footer: false,
+    seo: false,
+    integrations: false,
+  });
+
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const onResize = () => {
+      const isKb = window.innerHeight - vv.height > 150;
+      setIsKeyboardOpen(isKb);
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (data?.success && data.data) {
@@ -208,7 +232,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-12">
+    <div className="flex flex-col gap-6 pb-28 md:pb-12">
       <PageHeader
         title="Site Settings & Dynamic Branding"
         description="Manage public website name, logo, favicon, colors as well as admin panel name, logo, favicon, and theme colors dynamically."
@@ -225,14 +249,43 @@ export default function SettingsPage() {
         }
       />
 
-      <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      {/* Desktop Tabs (>= 768px) */}
+      <div className="hidden md:block">
+        <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      </div>
 
       <form onSubmit={handleSaveSettings} className="flex flex-col gap-6 max-w-4xl">
         {/* ============================================================== */}
+        {/* Accordion 1: General Branding (Mobile Header)                  */}
+        {/* ============================================================== */}
+        <button
+          type="button"
+          onClick={() => setOpenSections((prev) => ({ ...prev, general: !prev.general }))}
+          className="md:hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3 text-left transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] flex items-center justify-center shrink-0">
+              <Globe className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                General Branding (সাইট ও এডমিন ব্র্যান্ডিং)
+              </span>
+              <span className="text-xs text-slate-400">নাম, লোগো, ফেভিকন ও থিম কালার</span>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              openSections.general ? 'rotate-180 text-[#1b7d95]' : ''
+            }`}
+          />
+        </button>
+
+        {/* ============================================================== */}
         {/* Tab 1: Client Website Branding */}
         {/* ============================================================== */}
-        {activeTab === 'client-branding' && (
-          <div className="flex flex-col gap-6">
+        {(openSections.general || activeTab === 'client-branding') && (
+          <div className={`flex-col gap-6 ${openSections.general ? 'flex' : 'hidden'} ${activeTab === 'client-branding' ? 'md:flex' : 'md:hidden'}`}>
             <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-5">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
@@ -506,8 +559,8 @@ export default function SettingsPage() {
         {/* ============================================================== */}
         {/* Tab 2: Admin Panel Branding */}
         {/* ============================================================== */}
-        {activeTab === 'admin-branding' && (
-          <div className="flex flex-col gap-6">
+        {(openSections.general || activeTab === 'admin-branding') && (
+          <div className={`flex-col gap-6 ${openSections.general ? 'flex' : 'hidden'} ${activeTab === 'admin-branding' ? 'md:flex' : 'md:hidden'}`}>
             <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-5">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
@@ -770,10 +823,36 @@ export default function SettingsPage() {
         )}
 
         {/* ============================================================== */}
+        {/* Accordion 2: Contact Details (Mobile Header)                   */}
+        {/* ============================================================== */}
+        <button
+          type="button"
+          onClick={() => setOpenSections((prev) => ({ ...prev, contact: !prev.contact }))}
+          className="md:hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3 text-left transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] flex items-center justify-center shrink-0">
+              <Phone className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                Contact Details (যোগাযোগ ও সম্পাদকীয়)
+              </span>
+              <span className="text-xs text-slate-400">ফোন, অফিস ইমেইল ও প্রধান ঠিকানা</span>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              openSections.contact ? 'rotate-180 text-[#1b7d95]' : ''
+            }`}
+          />
+        </button>
+
+        {/* ============================================================== */}
         {/* Tab 3: Contact Details */}
         {/* ============================================================== */}
-        {activeTab === 'contact' && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        {(openSections.contact || activeTab === 'contact') && (
+          <div className={`p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-col gap-4 ${openSections.contact ? 'flex' : 'hidden'} ${activeTab === 'contact' ? 'md:flex' : 'md:hidden'}`}>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               Contact & Editorial Office
             </h2>
@@ -807,10 +886,36 @@ export default function SettingsPage() {
         )}
 
         {/* ============================================================== */}
+        {/* Accordion 3: Social & Apps (Mobile Header)                     */}
+        {/* ============================================================== */}
+        <button
+          type="button"
+          onClick={() => setOpenSections((prev) => ({ ...prev, social: !prev.social }))}
+          className="md:hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3 text-left transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] flex items-center justify-center shrink-0">
+              <Share2 className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                Social & Apps (সোশ্যাল ও মোবাইল অ্যাপ)
+              </span>
+              <span className="text-xs text-slate-400">ফেসবুক, ইউটিউব, এক্স ও প্লে স্টোর লিংক</span>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              openSections.social ? 'rotate-180 text-[#1b7d95]' : ''
+            }`}
+          />
+        </button>
+
+        {/* ============================================================== */}
         {/* Tab 4: Social & Apps */}
         {/* ============================================================== */}
-        {activeTab === 'social' && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        {(openSections.social || activeTab === 'social') && (
+          <div className={`p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-col gap-4 ${openSections.social ? 'flex' : 'hidden'} ${activeTab === 'social' ? 'md:flex' : 'md:hidden'}`}>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               Social Channels & Apps
             </h2>
@@ -866,10 +971,36 @@ export default function SettingsPage() {
         )}
 
         {/* ============================================================== */}
+        {/* Accordion 4: Footer & Legal (Mobile Header)                    */}
+        {/* ============================================================== */}
+        <button
+          type="button"
+          onClick={() => setOpenSections((prev) => ({ ...prev, footer: !prev.footer }))}
+          className="md:hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3 text-left transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                Footer & Legal (ফুটার ও কপিরাইট)
+              </span>
+              <span className="text-xs text-slate-400">সম্পাদক ও প্রকাশক ও কপিরাইট নোটিশ</span>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              openSections.footer ? 'rotate-180 text-[#1b7d95]' : ''
+            }`}
+          />
+        </button>
+
+        {/* ============================================================== */}
         {/* Tab 5: Footer & Legal */}
         {/* ============================================================== */}
-        {activeTab === 'footer' && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        {(openSections.footer || activeTab === 'footer') && (
+          <div className={`p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-col gap-4 ${openSections.footer ? 'flex' : 'hidden'} ${activeTab === 'footer' ? 'md:flex' : 'md:hidden'}`}>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               Footer & Legal Notices
             </h2>
@@ -893,10 +1024,36 @@ export default function SettingsPage() {
         )}
 
         {/* ============================================================== */}
+        {/* Accordion 5: Default SEO (Mobile Header)                       */}
+        {/* ============================================================== */}
+        <button
+          type="button"
+          onClick={() => setOpenSections((prev) => ({ ...prev, seo: !prev.seo }))}
+          className="md:hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3 text-left transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] flex items-center justify-center shrink-0">
+              <Search className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                Default SEO (ডিফল্ট এসইও মেটা)
+              </span>
+              <span className="text-xs text-slate-400">মেটা ডেসক্রিপশন ও সোশ্যাল শেয়ার ব্যানার</span>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              openSections.seo ? 'rotate-180 text-[#1b7d95]' : ''
+            }`}
+          />
+        </button>
+
+        {/* ============================================================== */}
         {/* Tab 6: SEO Defaults */}
         {/* ============================================================== */}
-        {activeTab === 'seo' && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        {(openSections.seo || activeTab === 'seo') && (
+          <div className={`p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-col gap-4 ${openSections.seo ? 'flex' : 'hidden'} ${activeTab === 'seo' ? 'md:flex' : 'md:hidden'}`}>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               Default Global SEO
             </h2>
@@ -924,10 +1081,36 @@ export default function SettingsPage() {
         )}
 
         {/* ============================================================== */}
+        {/* Accordion 6: Integrations (Mobile Header)                      */}
+        {/* ============================================================== */}
+        <button
+          type="button"
+          onClick={() => setOpenSections((prev) => ({ ...prev, integrations: !prev.integrations }))}
+          className="md:hidden w-full p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between gap-3 text-left transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#1b7d95]/10 text-[#1b7d95] flex items-center justify-center shrink-0">
+              <Code2 className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100">
+                Integrations (অ্যানালিটিক্স ও ইন্টিগ্রেশন)
+              </span>
+              <span className="text-xs text-slate-400">Google Analytics আইডি ট্র্যাকিং</span>
+            </div>
+          </div>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
+              openSections.integrations ? 'rotate-180 text-[#1b7d95]' : ''
+            }`}
+          />
+        </button>
+
+        {/* ============================================================== */}
         {/* Tab 7: Integrations */}
         {/* ============================================================== */}
-        {activeTab === 'integrations' && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-4">
+        {(openSections.integrations || activeTab === 'integrations') && (
+          <div className={`p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex-col gap-4 ${openSections.integrations ? 'flex' : 'hidden'} ${activeTab === 'integrations' ? 'md:flex' : 'md:hidden'}`}>
             <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
               Analytics & External Integrations
             </h2>
@@ -942,8 +1125,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Bottom Save Button */}
-        <div className="flex items-center justify-between pt-2">
+        {/* Bottom Save Button (Desktop) */}
+        <div className="hidden md:flex items-center justify-between pt-2">
           <span className="text-xs text-slate-500 dark:text-slate-400">
             All updates are saved globally and revalidate website layouts immediately.
           </span>
@@ -955,6 +1138,24 @@ export default function SettingsPage() {
             leftIcon={<Save className="w-4 h-4" />}
           >
             Save All Settings
+          </Button>
+        </div>
+
+        {/* Sticky Mobile Save Bar */}
+        <div
+          className={`md:hidden fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-xl transition-transform duration-200 ${
+            isKeyboardOpen ? 'translate-y-full pointer-events-none' : 'translate-y-0'
+          }`}
+        >
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            className="w-full min-h-[48px] justify-center text-base font-semibold shadow-md"
+            isLoading={isSaving}
+            leftIcon={<Save className="w-5 h-5" />}
+          >
+            সব সেটিংস সংরক্ষণ করুন (Save All Settings)
           </Button>
         </div>
       </form>

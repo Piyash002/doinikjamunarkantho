@@ -69,10 +69,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast: addToast, success, error, info }}>
       {children}
-      {/* Toast container: fixed bottom center on mobile, top right on desktop */}
+      {/* Toast container: fixed top on mobile (never blocks bottom action bars), top-right on desktop */}
       <div
         aria-live="polite"
-        className="fixed z-50 flex flex-col gap-2 pointer-events-none p-4 bottom-16 sm:bottom-4 right-0 left-0 sm:left-auto sm:max-w-md items-center sm:items-end"
+        className="fixed z-50 flex flex-col gap-2 pointer-events-none p-4 top-4 sm:top-4 right-0 left-0 sm:left-auto sm:max-w-md items-center sm:items-end pt-[calc(1rem+env(safe-area-inset-top,0px))]"
       >
         {toasts.map((t) => (
           <div

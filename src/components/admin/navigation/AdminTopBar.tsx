@@ -109,12 +109,12 @@ export function AdminTopBar({
 
   return (
     <header className="h-16 shrink-0 z-30 sticky top-0 flex items-center justify-between px-4 sm:px-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
-      {/* Left side: Hamburger (mobile/tablet) + Page Title */}
-      <div className="flex items-center gap-3">
+      {/* Left side: Hamburger (mobile only) + Page Title */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
         <button
           type="button"
           onClick={onOpenMobileMenu}
-          className="lg:hidden touch-target p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="md:hidden touch-target p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
           aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />

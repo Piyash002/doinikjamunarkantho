@@ -13,6 +13,21 @@ export interface AdminBottomBarProps {
 export function AdminBottomBar({ onOpenMore }: AdminBottomBarProps) {
   const pathname = usePathname();
   const { adminPrimaryColor } = useAdminSettings();
+  const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
+
+  // Hide sticky bottom tab bar when on-screen keyboard is open using visualViewport API
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const handleResize = () => {
+      const diff = window.innerHeight - vv.height;
+      setIsKeyboardOpen(diff > 140);
+    };
+    vv.addEventListener('resize', handleResize);
+    return () => vv.removeEventListener('resize', handleResize);
+  }, []);
+
+  if (isKeyboardOpen) return null;
 
   function isActive(href: string) {
     if (href === '/admin') return pathname === '/admin';
@@ -26,12 +41,12 @@ export function AdminBottomBar({ onOpenMore }: AdminBottomBarProps) {
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
-      label: 'Articles',
+      label: 'Posts',
       href: '/admin/posts',
       icon: <FileText className="w-5 h-5" />,
     },
     {
-      label: 'Create',
+      label: '+ New',
       href: '/admin/posts/new',
       isCreate: true,
       icon: <Plus className="w-6 h-6 stroke-[2.5]" />,

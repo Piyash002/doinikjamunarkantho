@@ -104,7 +104,11 @@ export default function LoginForm({ initialLogo = '', initialBrandColor = '#0a2b
               </label>
               <Input
                 id="login-username"
+                name="username"
                 type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="editor or editor@jamunarkantho.com"
@@ -122,7 +126,9 @@ export default function LoginForm({ initialLogo = '', initialBrandColor = '#0a2b
               <div className="relative">
                 <Input
                   id="login-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"

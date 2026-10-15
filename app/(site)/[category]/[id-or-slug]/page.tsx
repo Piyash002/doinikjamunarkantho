@@ -15,6 +15,7 @@ import Settings from "@/src/models/Settings";
 import { getPostBySlug } from "@/src/services/getPostBySlug";
 import { getPublicTrendingTopics } from "@/src/services/adminTagService";
 import { getNavCategories } from "@/src/services/news";
+import { toBanglaNumber } from "@/src/lib/dateUtils";
 
 export const revalidate = 60;
 
@@ -152,6 +153,7 @@ function sanitizeArticle(content: string) {
       "del",
       "ins",
       "mark",
+      "div",
     ],
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
@@ -167,6 +169,16 @@ function sanitizeArticle(content: string) {
         "allowfullscreen",
         "loading",
         "referrerpolicy",
+        "class",
+        "style",
+      ],
+      div: [
+        "class",
+        "style",
+        "data-youtube-video",
+        "data-width",
+        "data-alignment",
+        "data-spacing",
       ],
       ol: ["start"],
       th: ["colspan", "rowspan"],
@@ -189,6 +201,29 @@ function sanitizeArticle(content: string) {
         'margin-right': [/.*/],
         clear: [/.*/],
       },
+      div: {
+        width: [/.*/],
+        'max-width': [/.*/],
+        height: [/.*/],
+        display: [/.*/],
+        margin: [/.*/],
+        'margin-top': [/.*/],
+        'margin-bottom': [/.*/],
+        'margin-left': [/.*/],
+        'margin-right': [/.*/],
+        float: [/.*/],
+        clear: [/.*/],
+        'aspect-ratio': [/.*/],
+      },
+      iframe: {
+        width: [/.*/],
+        'max-width': [/.*/],
+        height: [/.*/],
+        display: [/.*/],
+        margin: [/.*/],
+        'aspect-ratio': [/.*/],
+        border: [/.*/],
+      },
       span: {
         color: [/.*/],
         'background-color': [/.*/],
@@ -207,15 +242,36 @@ function sanitizeArticle(content: string) {
       "facebook.com",
     ],
     transformTags: {
-      iframe: (_tagName, attributes) => ({
-        tagName: "iframe",
-        attribs: {
-          ...attributes,
-          class: "article-embed-frame",
-          loading: "lazy",
-          referrerpolicy: "strict-origin-when-cross-origin",
-        },
-      }),
+      iframe: (_tagName, attributes) => {
+        let src = attributes.src || '';
+        if (src.includes('watch?v=')) {
+          const videoId = src.split('watch?v=')[1]?.split('&')[0];
+          if (videoId) src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+        } else if (src.includes('youtu.be/')) {
+          const videoId = src.split('youtu.be/')[1]?.split('?')[0];
+          if (videoId) src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+        }
+
+        const existingClass = attributes.class || '';
+        const finalClass = existingClass.includes('article-embed-frame')
+          ? existingClass
+          : `${existingClass} article-embed-frame`.trim();
+
+        return {
+          tagName: 'iframe',
+          attribs: {
+            ...attributes,
+            src,
+            class: finalClass,
+            loading: attributes.loading || 'lazy',
+            referrerpolicy: attributes.referrerpolicy || 'strict-origin-when-cross-origin',
+            allow:
+              'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
+            allowfullscreen: 'true',
+            frameborder: '0',
+          },
+        };
+      },
       a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }, true),
     },
   });
@@ -524,7 +580,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     <p>
                       {formatBanglaDate(publishedAt)}{publishedAt ? ", " : ""}{formatBanglaTime(publishedAt)}
                       {(post.views || post.viewCount) ? (
-                        <span className="font-semibold text-slate-500"> • {post.views || post.viewCount} বার পঠিত</span>
+                        <span className="font-semibold text-slate-500"> • {toBanglaNumber(post.views || post.viewCount)} বার পঠিত</span>
                       ) : null}
                     </p>
                     {updatedAt && publishedAt && new Date(updatedAt).getTime() !== new Date(publishedAt).getTime() && (

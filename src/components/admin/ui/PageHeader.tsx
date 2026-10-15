@@ -39,14 +39,25 @@ export function PageHeader({
         {backHref ? (
           <Link
             href={backHref}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors py-1"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors py-1 touch-target -ml-2 px-2 rounded-lg"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
           </Link>
-        ) : (
-          breadcrumbs &&
-          breadcrumbs.length > 0 && (
+        ) : breadcrumbs && breadcrumbs.length > 0 ? (
+          <>
+            {/* Mobile Back button pointing to dashboard or parent breadcrumb */}
+            <div className="sm:hidden">
+              <Link
+                href={breadcrumbs[breadcrumbs.length - 2]?.href || '/admin'}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 py-1"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
+              </Link>
+            </div>
+
+            {/* Desktop Breadcrumbs */}
             <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
               <Link href="/admin" className="hover:text-slate-700 dark:hover:text-slate-200">
                 Dashboard
@@ -64,24 +75,28 @@ export function PageHeader({
                 </React.Fragment>
               ))}
             </nav>
-          )
-        )}
+          </>
+        ) : null}
       </div>
 
-      {/* Main Title & Action Buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+      {/* Main Title & Action Buttons (Stacks vertically on mobile) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 break-words">
             {title}
           </h1>
           {displayDescription && (
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 break-words">
               {displayDescription}
             </p>
           )}
         </div>
 
-        {actions && <div className="flex items-center gap-2.5 flex-wrap shrink-0">{actions}</div>}
+        {actions && (
+          <div className="flex items-center gap-2 flex-wrap shrink-0 w-full sm:w-auto justify-start sm:justify-end pt-1 sm:pt-0">
+            {actions}
+          </div>
+        )}
       </div>
     </div>
   );

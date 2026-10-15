@@ -1,8 +1,19 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import AdminShell from '@/src/components/admin/AdminShell';
 import { connectToDatabase } from '@/src/lib/db';
 import Settings from '@/src/models/Settings';
 import './admin.css';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#0a2b3a' },
+    { media: '(prefers-color-scheme: dark)', color: '#090d16' },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   let adminTitle = 'দৈনিক যমুনা কণ্ঠ';
@@ -27,6 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: `প্রশাসন | ${adminTitle}`,
       template: `%s | প্রশাসন`,
     },
+    manifest: '/manifest.json',
     icons: {
       icon: adminFavicon,
       shortcut: adminFavicon,
