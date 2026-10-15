@@ -2659,11 +2659,11 @@ html[data-theme="dark"] .article-portal {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid #156d3b;
-  border-radius: 8px;
-  background: #156d3b;
+  height: 35px;
+  padding: 0 13px;
+  border: none;
+  border-radius: 2px;
+  background: #27a68a;
   color: #ffffff !important;
   cursor: pointer;
   font-family: Arial, var(--font-bengali), sans-serif;
@@ -2671,29 +2671,20 @@ html[data-theme="dark"] .article-portal {
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(21, 109, 59, 0.25);
+  box-shadow: 0 1px 3px rgba(39, 166, 138, 0.25);
   transition: all 180ms ease;
   user-select: none;
 }
 
 .article-print-action-btn:hover {
-  background: #0e502a !important;
-  border-color: #09381d !important;
+  background: #208e75 !important;
   color: #ffffff !important;
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(21, 109, 59, 0.35);
+  box-shadow: 0 3px 8px rgba(39, 166, 138, 0.35);
 }
 
 .article-print-action-btn:active {
   transform: translateY(0);
-}
-
-.article-print-action-btn svg {
-  width: 16px;
-  height: 16px;
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  stroke-width: 2.2;
 }
 
 .article-print-action-btn span {
@@ -3713,6 +3704,352 @@ html[data-theme="dark"] .article-portal {
 
 .newspaper-print-sheet {
   display: none;
+  background: #ffffff;
+  color: #000000;
+  box-sizing: border-box;
+  font-family: var(--font-bengali), Arial, sans-serif;
+}
+
+/* Sirajganj TV Print Preview Modal Styles */
+.newspaper-print-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px;
+  overflow-y: auto;
+  backdrop-filter: blur(4px);
+}
+
+.newspaper-modal-close-btn {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  z-index: 100002;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.newspaper-modal-close-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  transform: scale(1.05);
+}
+
+.newspaper-print-modal-scroll {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 70px;
+}
+
+/* Authentic Newspaper Print Sheet Box with 2px Green Border (Exact Sirajganj TV Reference) */
+.newspaper-print-sheet-box {
+  width: 820px;
+  max-width: 100%;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #156d3b;
+  padding: 28px 32px;
+  box-sizing: border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  font-family: var(--font-bengali), Arial, sans-serif;
+  position: relative;
+}
+
+/* Tagline below logo with horizontal decorative lines */
+.newspaper-print-tagline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111111;
+  margin: 6px 0 10px;
+}
+
+.newspaper-print-tagline::before,
+.newspaper-print-tagline::after {
+  content: "";
+  height: 1.5px;
+  background: #156d3b;
+  width: 45px;
+  display: inline-block;
+}
+
+/* Floating Action Buttons at Bottom Right: Red Print + Green Save (Exact Sirajganj TV Reference) */
+.newspaper-print-modal-actions {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  z-index: 100001;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.newspaper-action-btn-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: #dc2626;
+  color: #ffffff;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.45);
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.newspaper-action-btn-print:hover {
+  background-color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.newspaper-action-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: #15803d;
+  color: #ffffff;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(21, 128, 61, 0.45);
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.newspaper-action-btn-save:hover {
+  background-color: #166534;
+  transform: translateY(-1px);
+}
+
+/* Button directly under featured image (Sirajganj TV style) */
+.article-under-image-bar {
+  margin: 8px 0 16px 0;
+  display: flex;
+  align-items: center;
+}
+
+.article-under-image-print-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: #27a68a;
+  color: #ffffff;
+  padding: 5px 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 2px;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(39, 166, 138, 0.25);
+  transition: background-color 0.15s, transform 0.1s;
+}
+
+.article-under-image-print-btn:hover {
+  background-color: #208e75;
+}
+
+.article-under-image-print-btn:active {
+  transform: scale(0.98);
+}
+
+/* Base styles for newspaper print sheet used by both print media and JPG export */
+.newspaper-print-masthead {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.newspaper-print-logo {
+  max-height: 85px;
+  max-width: 360px;
+  object-fit: contain;
+  margin: 0 auto;
+  display: block;
+}
+
+.newspaper-print-brand-fallback {
+  font-size: 26pt;
+  font-weight: 800;
+  color: #000000;
+  margin: 0;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.newspaper-print-date-strip {
+  background: #156d3b !important;
+  color: #ffffff !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 5px 14px !important;
+  margin: 8px 0 16px !important;
+  font-size: 10pt !important;
+  font-weight: 700 !important;
+  border-radius: 2px !important;
+  border-top: 2px solid #156d3b !important;
+  border-bottom: 2px solid #156d3b !important;
+}
+
+.newspaper-print-date-strip span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.newspaper-print-date-sep {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  opacity: 0.85;
+}
+
+.newspaper-print-headline {
+  font-size: 22pt;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #000000;
+  text-align: center;
+  margin: 14px 0 18px;
+  letter-spacing: -0.2px;
+}
+
+.newspaper-print-body {
+  width: 100%;
+  font-size: 11pt;
+  line-height: 1.75;
+  color: #111111;
+}
+
+.newspaper-print-media-box {
+  float: left;
+  width: 48%;
+  margin-right: 18px;
+  margin-bottom: 12px;
+}
+
+.newspaper-print-img {
+  width: 100%;
+  height: auto;
+  max-height: 280px;
+  object-fit: cover;
+  display: block;
+  border: 1px solid #d1d5db;
+  border-radius: 2px;
+}
+
+.newspaper-print-caption {
+  font-size: 9pt;
+  color: #333333;
+  margin: 4px 0 0;
+  line-height: 1.35;
+  font-style: italic;
+}
+
+.newspaper-print-reporter {
+  margin-top: 8px;
+  font-size: 10.5pt;
+  line-height: 1.4;
+  color: #000000;
+  font-weight: 700;
+}
+
+.newspaper-print-lead {
+  font-size: 12pt;
+  line-height: 1.6;
+  color: #000000;
+  font-weight: 700;
+  margin-bottom: 10pt;
+}
+
+.newspaper-print-content {
+  font-size: 11pt;
+  line-height: 1.75;
+  color: #111111;
+  text-align: justify;
+}
+
+.newspaper-print-content p {
+  margin-bottom: 10pt;
+}
+
+.newspaper-print-content img,
+.newspaper-print-content figure {
+  max-width: 100%;
+}
+
+.newspaper-print-clearfix {
+  clear: both;
+}
+
+.newspaper-print-footer {
+  margin-top: 24px;
+  padding-top: 12px;
+  text-align: center;
+  border-top: 1px solid #4b5563;
+}
+
+.newspaper-print-footer-rule {
+  display: none;
+}
+
+.newspaper-print-footer-editor-title {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #111111;
+  margin: 0 0 3px;
+}
+
+.newspaper-print-footer-editor-name {
+  font-size: 12.5pt;
+  font-weight: 700;
+  color: #000000;
+  margin: 0 0 4px;
+}
+
+.newspaper-print-footer-contacts {
+  font-size: 9.5pt;
+  color: #222222;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.newspaper-print-footer-sep {
+  color: #666666;
+}
+
+.newspaper-print-footer-copyright {
+  font-size: 9pt;
+  color: #444444;
+  margin: 6px 0 0;
+  font-weight: 600;
 }
 
 @media print {
@@ -3757,7 +4094,27 @@ html[data-theme="dark"] .article-portal {
   .article-head-divider,
   nav,
   button,
+  .newspaper-modal-close-btn,
+  .newspaper-print-modal-actions,
+  .article-under-image-bar,
   #__next-route-announcer__ {
+    display: none !important;
+  }
+
+  .newspaper-print-modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .newspaper-print-modal-scroll {
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  body:has(.newspaper-print-modal-backdrop) .newspaper-print-sheet {
     display: none !important;
   }
 

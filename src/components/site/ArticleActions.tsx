@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Printer, Copy, Check, Share2, Eye, Plus } from "lucide-react";
+import { RetroPrinterIcon } from "./UnderImagePrintButton";
 
 type ArticleActionsProps = {
   postId: string;
@@ -114,6 +115,10 @@ export default function ArticleActions({
     }
   }
 
+  function openPrintModal() {
+    window.dispatchEvent(new CustomEvent("open-print-modal"));
+  }
+
   const pageUrl = typeof window === "undefined" ? "" : window.location.href;
   const encodedUrl = encodeURIComponent(pageUrl);
   const encodedTitle = encodeURIComponent(title);
@@ -136,15 +141,15 @@ export default function ArticleActions({
             <small>Shares</small>
           </span>
 
-          {/* Print News Action Button (Placed before Facebook with visible Bengali label) */}
+          {/* Print News Action Button (Sirajganj TV Style) */}
           <button
-            aria-label="সংবাদটি প্রিন্ট বা PDF ডাউনলোড করুন"
+            aria-label="সংবাদটি প্রিন্ট ও JPG সেভ করুন"
             className="article-print-action-btn"
-            onClick={() => window.print()}
-            title="সংবাদটি প্রিন্ট বা PDF হিসেবে ডাউনলোড করুন"
+            onClick={openPrintModal}
+            title="সংবাদটি প্রিন্ট ও JPG সেভ করুন"
             type="button"
           >
-            <Printer className="w-4 h-4 shrink-0" />
+            <RetroPrinterIcon className="w-[18px] h-[18px]" />
             <span>প্রিন্ট নিউজ</span>
           </button>
 

@@ -7,6 +7,8 @@ import sanitizeHtml from "sanitize-html";
 
 import ArticleActions from "@/src/components/site/ArticleActions";
 import ArticleSiteHeader from "@/src/components/site/ArticleSiteHeader";
+import PrintNewsModal, { type PrintNewsData } from "@/src/components/site/PrintNewsModal";
+import UnderImagePrintButton from "@/src/components/site/UnderImagePrintButton";
 import SiteFooter from "@/src/components/site/SiteFooter";
 import StickyArticleAd from "@/src/components/site/StickyArticleAd";
 import { connectToDatabase } from "@/src/lib/db";
@@ -121,13 +123,7 @@ function formatBanglaPrintDateTime(value?: Date | string | null, isPrintTime = f
   const minutes = toBanglaDigits(String(dhakaDate.getMinutes()).padStart(2, "0"));
   const hour12 = hours % 12 || 12;
   const hour12Bn = toBanglaDigits(hour12);
-
-  let period: string;
-  if (isPrintTime) {
-    period = hours >= 12 ? "পি.এম" : "এ.এম";
-  } else {
-    period = hours >= 12 ? "অপরাহ্ন" : (hours < 6 ? "রাত" : "পূর্বাহ্ন");
-  }
+  const period = hours >= 12 ? "পি.এম" : "এ.এম";
 
   return `${month} ${day}, ${year}, ${hour12Bn}:${minutes} ${period}`;
 }
@@ -456,8 +452,29 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     ],
   };
 
+  const printData: PrintNewsData = {
+    title: post.title,
+    lead: post.lead,
+    publishedDate: formatBanglaPrintDateTime(publishedAt, false),
+    authorName,
+    authorDesignation: author?.designation,
+    imageUrl: post.featuredImage?.url,
+    imageCaption: post.featuredImage?.caption,
+    contentHtml: cleanPrintHtml,
+    siteName,
+    logoUrl: settings?.logo?.url,
+    tagline: "সত্যের পথে, মানুষের পাশে",
+    editorName: settings?.editorName || "মোঃ রুবেল হোসাইন তুহিন তালুকদার",
+    phone: settings?.phone || "০১৬৭৭-৯০৫৫৭০ / ০১৩১১৮৫০৮৮০",
+    footerAddress: settings?.footerAddress,
+    copyrightText: settings?.copyrightText,
+  };
+
   return (
     <main className="portal article-portal">
+      {/* Interactive Print & Save JPG Modal (Exact Sirajganj TV Format) */}
+      <PrintNewsModal data={printData} />
+
       {/* Newspaper Print Sheet - Strictly displayed on print / PDF download */}
       <div className="newspaper-print-sheet" aria-hidden="true">
         {/* Top Masthead Logo */}
@@ -467,6 +484,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               src={settings.logo.url}
               alt={siteName}
               className="newspaper-print-logo"
+              crossOrigin="anonymous"
             />
           ) : (
             <h1 className="newspaper-print-brand-fallback">{siteName}</h1>
@@ -491,6 +509,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 src={post.featuredImage.url}
                 alt={post.featuredImage.caption || post.title}
                 className="newspaper-print-img"
+                crossOrigin="anonymous"
               />
               {post.featuredImage.caption && (
                 <p className="newspaper-print-caption">{post.featuredImage.caption}</p>
@@ -615,6 +634,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 {post.featuredImage.caption && <figcaption>{post.featuredImage.caption}</figcaption>}
               </figure>
             )}
+
+            {/* Print News button directly under image (Sirajganj TV style) */}
+            <UnderImagePrintButton />
 
             {post.lead || post.excerpt ? (
               <>

@@ -253,7 +253,12 @@ export default function SiteFooter({
               <span className="contact-label font-semibold text-slate-700 dark:text-slate-300">অফিস:</span>{" "}
               {footerAddress}
             </p>
+
           )}
+          <p className="footer-contact-item">
+            <span className="contact-label font-semibold text-slate-700 dark:text-slate-300">সম্পাদক ও প্রকাশক :</span>{" "}
+            মো: রুবেল হোসাইন তালুকদার
+          </p>
           {phone && (
             <p className="footer-contact-item">
               <span className="contact-label font-semibold text-slate-700 dark:text-slate-300">মোবাইল:</span>{" "}
