@@ -159,17 +159,20 @@ function getStoryTitle(post: PostLike | null | undefined) {
   return post?.title || "শিরোনাম অনুপস্থিত";
 }
 
+import { toCleanCategorySlug } from "@/src/lib/categorySlugs";
+
 function getStoryUrl(story: StoryItem) {
-  const uniqueId = story.id || story.slug;
-  if (!uniqueId || !story.categorySlug) return "#news-feed";
-  return `/${encodeURIComponent(story.categorySlug)}/${encodeURIComponent(uniqueId)}`;
+  const uniqueId = story.slug || story.id;
+  const cleanCat = toCleanCategorySlug(story.categorySlug);
+  if (!uniqueId || !cleanCat) return "#news-feed";
+  return `/${encodeURIComponent(cleanCat)}/${encodeURIComponent(uniqueId)}`;
 }
 
 function toStoryItem(post: PostLike | null | undefined, index = 0, nowValue?: number | null): StoryItem {
   const category = getCategoryName(post?.category || post?.categoryName || "");
-  const categorySlug =
-    typeof post?.category === "string" ? post.category : post?.category?.slug || "";
-  const uniqueId = post?._id ? String(post._id) : (post?.slug || `story-${index}`);
+  const rawCatSlug = typeof post?.category === "string" ? post.category : post?.category?.slug || "";
+  const categorySlug = toCleanCategorySlug(rawCatSlug);
+  const uniqueId = post?.slug || (post?._id ? String(post._id) : `story-${index}`);
   return {
     id: uniqueId,
     slug: post?.slug || uniqueId,

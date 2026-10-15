@@ -43,8 +43,21 @@ export async function getPostBySlug(slug, previewToken = null) {
   if (!post) return null;
 
   const categoryQuery = mongoose.isValidObjectId(post.category)
-    ? { $or: [{ slug: post.category }, { _id: post.category }] }
-    : { slug: post.category };
+    ? {
+        $or: [
+          { _id: post.category },
+          { slug: post.category },
+          { name_bn: post.category },
+          { name_en: post.category },
+        ],
+      }
+    : {
+        $or: [
+          { slug: post.category },
+          { name_bn: post.category },
+          { name_en: post.category },
+        ],
+      };
   const [category, author, related, popular, latest, ads] = await Promise.all([
     Category.findOne(categoryQuery).lean(),
     post.author

@@ -50,15 +50,18 @@ function decodeSegment(value: string) {
   }
 }
 
+import { toCleanCategorySlug } from "@/src/lib/categorySlugs";
+
 function encodeSegment(value: string) {
   return encodeURIComponent(value);
 }
 
 function routeFor(categorySlug: string, postOrIdOrSlug: any) {
   const idOrSlug = typeof postOrIdOrSlug === 'object' && postOrIdOrSlug !== null
-    ? String(postOrIdOrSlug._id || postOrIdOrSlug.slug)
+    ? String(postOrIdOrSlug.slug || postOrIdOrSlug._id)
     : String(postOrIdOrSlug);
-  return `/${encodeSegment(categorySlug)}/${encodeSegment(idOrSlug)}`;
+  const cleanCategory = toCleanCategorySlug(categorySlug);
+  return `/${encodeSegment(cleanCategory)}/${encodeSegment(idOrSlug)}`;
 }
 
 function routeForHomeCategory(categorySlug: string) {
@@ -317,8 +320,8 @@ function NewsListItem({
   index?: number;
   showIndex?: boolean;
 }) {
-  const postUniqueId = String(post._id || post.slug || "");
-  const categorySlug = String(post.category || "");
+  const postUniqueId = String(post.slug || post._id || "");
+  const categorySlug = toCleanCategorySlug(String(post.category || ""));
   return (
     <li className={`article-news-list-item${showIndex ? " with-index" : ""}`}>
       {showIndex && <span className="article-news-index">{["০১", "০২", "০৩"][index || 0]}</span>}
@@ -387,8 +390,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const result = await loadPost(slug);
   if (!result) notFound();
 
-  const canonicalCategory = result.category?.slug || String(result.post.category);
-  const postUniqueId = String(result.post._id || result.post.slug);
+  const canonicalCategory = toCleanCategorySlug(result.category?.slug || result.post.category);
+  const postUniqueId = String(result.post.slug || result.post._id);
   if (requestedCategory !== canonicalCategory || slug !== postUniqueId) {
     permanentRedirect(routeFor(canonicalCategory, postUniqueId));
   }
@@ -616,6 +619,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                   shareCount={post.shareCount || 0}
                   viewCount={post.views || post.viewCount || 0}
                   title={post.title}
+                  shareUrl={canonicalUrl}
                 />
               </div>
             </header>
@@ -692,12 +696,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             <nav aria-label="আগের ও পরের খবর" className="article-prev-next">
               {previous ? (
-                <Link href={routeFor(String(previous.category), String(previous._id || previous.slug))}>
+                <Link href={routeFor(String(previous.category), String(previous.slug || previous._id))}>
                   <span>← আগের খবর</span><strong>{previous.title}</strong>
                 </Link>
               ) : <span />}
               {next ? (
-                <Link href={routeFor(String(next.category), String(next._id || next.slug))}>
+                <Link href={routeFor(String(next.category), String(next.slug || next._id))}>
                   <span>পরের খবর →</span><strong>{next.title}</strong>
                 </Link>
               ) : <span />}
@@ -730,7 +734,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <ol>
                 {related.slice(0, 2).map((item: ArticleListPost) => (
                   <li key={String(item._id)}>
-                    <Link href={routeFor(String(item.category), String(item._id || item.slug))}>{item.title}</Link>
+                    <Link href={routeFor(String(item.category), String(item.slug || item._id))}>{item.title}</Link>
                   </li>
                 ))}
               </ol>
@@ -740,7 +744,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               <ol start={3}>
                 {related.slice(2, 4).map((item: ArticleListPost) => (
                   <li key={String(item._id)}>
-                    <Link href={routeFor(String(item.category), String(item._id || item.slug))}>{item.title}</Link>
+                    <Link href={routeFor(String(item.category), String(item.slug || item._id))}>{item.title}</Link>
                   </li>
                 ))}
               </ol>

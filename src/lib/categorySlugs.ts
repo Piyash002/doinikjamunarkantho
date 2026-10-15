@@ -1,0 +1,47 @@
+export const BN_TO_EN_CATEGORY_SLUGS: Record<string, string> = {
+  'জাতীয়': 'national',
+  'রাজনীতি': 'politics',
+  'অর্থনীতি': 'economy',
+  'এক্সক্লুসিভ': 'exclusive',
+  'সারাদেশ': 'sarades',
+  'আন্তর্জাতিক': 'international',
+  'খেলা': 'sports',
+  'বিনোদন': 'entertainment',
+  'স্বাস্থ্য': 'health',
+  'লাইফস্টাইল': 'lifestyle',
+  'তথ্যপ্রযুক্তি': 'technology',
+  'অটোমোবাইল': 'automobile',
+  'ট্যুরিজম': 'tourism',
+  'শিক্ষা': 'education',
+  'জবস': 'jobs',
+  'প্রবাস': 'overseas',
+  'মতামত': 'opinion',
+  'ধর্ম': 'religion',
+  'ক্যাম্পাস': 'campus',
+  'আইন-আদালত': 'law',
+  'এভিয়েশন': 'aviation',
+  'গণমাধ্যম': 'media',
+  'ভিডিও': 'video',
+  'কৃষি ও প্রকৃতি': 'agriculture',
+  'জাতীয় সংসদ': 'parliament',
+  'রাজধানীর খবর': 'capital-news',
+  'আইন ও বিচার': 'law-justice',
+  'আওয়ামী লীগ': 'awami-league',
+  'বিএনপি': 'bnp',
+  'নির্বাচন': 'election',
+  'ঢাকা বিভাগ': 'dhaka-division',
+  'চট্টগ্রাম বিভাগ': 'chattogram-division',
+  'সিলেট বিভাগ': 'sylhet-division',
+  'ক্রিকেট': 'cricket',
+  'ফুটবল': 'football',
+  'ঢালিউড': 'dhallywood',
+  'বলিউড': 'bollywood',
+  'ব্যাংক ও বিমা': 'bank-insurance',
+  'শেয়ারবাজার': 'stock-market',
+};
+
+export function toCleanCategorySlug(cat: string | undefined | null): string {
+  if (!cat) return 'news';
+  const trimmed = String(cat).trim();
+  return BN_TO_EN_CATEGORY_SLUGS[trimmed] || trimmed;
+}

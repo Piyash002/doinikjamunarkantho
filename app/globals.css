@@ -4052,6 +4052,202 @@ html[data-theme="dark"] .article-portal {
   font-weight: 600;
 }
 
+/* Mobile Responsive Styles for Newspaper Print Modal & Sheet (max-width: 680px) */
+@media (max-width: 680px) {
+  .newspaper-print-modal-backdrop {
+    padding: 10px 8px 85px 8px;
+    align-items: flex-start;
+  }
+
+  .newspaper-modal-close-btn {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .newspaper-print-modal-scroll {
+    width: 100%;
+    padding-bottom: 85px;
+  }
+
+  .newspaper-print-sheet-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 18px 14px !important;
+    border: 1.5px solid #156d3b !important;
+    border-radius: 4px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .newspaper-print-logo {
+    max-height: 55px !important;
+    max-width: 250px !important;
+  }
+
+  .newspaper-print-brand-fallback {
+    font-size: 20pt !important;
+  }
+
+  .newspaper-print-tagline {
+    font-size: 11.5px !important;
+    gap: 8px !important;
+    margin: 4px 0 8px !important;
+  }
+
+  .newspaper-print-tagline::before,
+  .newspaper-print-tagline::after {
+    width: 24px !important;
+  }
+
+  .newspaper-print-date-strip {
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 7px 10px !important;
+    margin: 8px 0 14px !important;
+    font-size: 11.5px !important;
+    line-height: 1.4 !important;
+    text-align: center !important;
+    border-radius: 3px !important;
+  }
+
+  .newspaper-print-date-sep {
+    display: none !important;
+  }
+
+  .newspaper-print-date-item {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .newspaper-print-headline {
+    font-size: 20px !important;
+    line-height: 1.4 !important;
+    margin: 12px 0 14px !important;
+    word-break: break-word !important;
+    letter-spacing: normal !important;
+  }
+
+  .newspaper-print-body {
+    font-size: 14.5px !important;
+    line-height: 1.75 !important;
+  }
+
+  .newspaper-print-media-box {
+    float: none !important;
+    width: 100% !important;
+    margin-right: 0 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .newspaper-print-img {
+    width: 100% !important;
+    max-height: 240px !important;
+    object-fit: cover !important;
+    border-radius: 3px !important;
+  }
+
+  .newspaper-print-caption {
+    font-size: 11.5px !important;
+    margin-top: 4px !important;
+    text-align: center !important;
+  }
+
+  .newspaper-print-reporter {
+    font-size: 13.5px !important;
+    line-height: 1.45 !important;
+    margin-top: 6px !important;
+    margin-bottom: 8px !important;
+    text-align: left !important;
+  }
+
+  .newspaper-print-lead {
+    font-size: 14.5px !important;
+    line-height: 1.65 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .newspaper-print-content {
+    font-size: 14.5px !important;
+    line-height: 1.75 !important;
+    text-align: left !important;
+    word-break: break-word !important;
+  }
+
+  .newspaper-print-content p {
+    margin-bottom: 10px !important;
+  }
+
+  .newspaper-print-content img,
+  .newspaper-print-content figure {
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 10px auto !important;
+    display: block !important;
+  }
+
+  .newspaper-print-footer {
+    margin-top: 18px !important;
+    padding-top: 10px !important;
+  }
+
+  .newspaper-print-footer-editor-title {
+    font-size: 12px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .newspaper-print-footer-editor-name {
+    font-size: 14px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .newspaper-print-footer-contacts {
+    flex-direction: column !important;
+    gap: 3px !important;
+    font-size: 11.5px !important;
+    margin: 4px 0 !important;
+  }
+
+  .newspaper-print-footer-sep {
+    display: none !important;
+  }
+
+  .newspaper-print-footer-copyright {
+    font-size: 11px !important;
+    margin-top: 6px !important;
+  }
+
+  /* Fixed Bottom Actions Toolbar on Mobile */
+  .newspaper-print-modal-actions {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15) !important;
+    border-top: 1px solid #e5e7eb !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+    z-index: 100002 !important;
+    box-sizing: border-box !important;
+  }
+
+  .newspaper-action-btn-print,
+  .newspaper-action-btn-save {
+    flex: 1 !important;
+    max-width: 180px !important;
+    justify-content: center !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    border-radius: 4px !important;
+  }
+}
+
 @media print {
   @page {
     margin: 10mm 15mm;

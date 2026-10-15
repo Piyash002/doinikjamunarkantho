@@ -9,6 +9,7 @@ type ArticleActionsProps = {
   shareCount: number;
   viewCount?: number;
   title: string;
+  shareUrl?: string;
 };
 
 function subscribeToFontSize(onChange: () => void) {
@@ -30,6 +31,7 @@ export default function ArticleActions({
   shareCount: initialShareCount,
   viewCount: initialViewCount = 0,
   title,
+  shareUrl,
 }: ArticleActionsProps) {
   const [shareCount, setShareCount] = useState(initialShareCount);
   const [viewCount, setViewCount] = useState(initialViewCount);
@@ -85,10 +87,20 @@ export default function ArticleActions({
     }
   }
 
+  const rawUrl = shareUrl || (typeof window === "undefined" ? "" : window.location.href);
+  let cleanUrl = rawUrl;
+  try {
+    cleanUrl = decodeURI(rawUrl);
+  } catch {
+    cleanUrl = rawUrl;
+  }
+  const encodedUrl = encodeURIComponent(cleanUrl);
+  const encodedTitle = encodeURIComponent(title);
+
   async function copyLink() {
     await registerShare();
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(cleanUrl);
       setCopied(true);
       setNotice("লিংক কপি হয়েছে।");
       window.setTimeout(() => setCopied(false), 2500);
@@ -105,7 +117,7 @@ export default function ArticleActions({
   function shareOnWeb() {
     if (navigator.share) {
       void registerShare();
-      void navigator.share({ title, url: window.location.href }).catch((error: unknown) => {
+      void navigator.share({ title, url: cleanUrl }).catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
           setNotice("শেয়ার মেনু খোলা যায়নি।");
         }
@@ -118,10 +130,6 @@ export default function ArticleActions({
   function openPrintModal() {
     window.dispatchEvent(new CustomEvent("open-print-modal"));
   }
-
-  const pageUrl = typeof window === "undefined" ? "" : window.location.href;
-  const encodedUrl = encodeURIComponent(pageUrl);
-  const encodedTitle = encodeURIComponent(title);
 
   return (
     <>

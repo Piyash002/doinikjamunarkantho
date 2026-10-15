@@ -51,9 +51,11 @@ const BD_DIVISIONS = [
   'ময়মনসিংহ',
 ];
 
+import { toCleanCategorySlug } from '@/src/lib/categorySlugs';
+
 function getStoryUrl(post: CategoryPostItem, categorySlug: string) {
   const identifier = post.slug || post._id;
-  const cat = categorySlug || 'news';
+  const cat = toCleanCategorySlug(categorySlug);
   return `/${encodeURIComponent(cat)}/${encodeURIComponent(identifier)}`;
 }
 

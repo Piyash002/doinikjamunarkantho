@@ -179,9 +179,9 @@ export default function PrintNewsModal({ data }: PrintNewsModalProps) {
 
           {/* Green Date Ribbon Strip */}
           <div className="newspaper-print-date-strip">
-            <span>প্রিন্ট এর তারিখ: {currentPrintDate}</span>
+            <span className="newspaper-print-date-item">প্রিন্ট এর তারিখ: {currentPrintDate}</span>
             <span className="newspaper-print-date-sep">||</span>
-            <span>প্রকাশের তারিখ: {data.publishedDate}</span>
+            <span className="newspaper-print-date-item">প্রকাশের তারিখ: {data.publishedDate}</span>
           </div>
 
           {/* Centered Bold News Headline */}

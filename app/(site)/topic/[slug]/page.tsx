@@ -60,11 +60,14 @@ function formatBanglaDateTime(dateValue?: string | Date | null): string {
   return `${dateStr}, ${timeStr}`;
 }
 
+import { toCleanCategorySlug } from '@/src/lib/categorySlugs';
+
 function routeFor(categorySlug: string, postOrIdOrSlug: any): string {
   const idOrSlug = typeof postOrIdOrSlug === 'object' && postOrIdOrSlug !== null
-    ? String(postOrIdOrSlug._id || postOrIdOrSlug.slug)
+    ? String(postOrIdOrSlug.slug || postOrIdOrSlug._id)
     : String(postOrIdOrSlug);
-  return `/${encodeURIComponent(categorySlug)}/${encodeURIComponent(idOrSlug)}`;
+  const cleanCat = toCleanCategorySlug(categorySlug);
+  return `/${encodeURIComponent(cleanCat)}/${encodeURIComponent(idOrSlug)}`;
 }
 
 const FALLBACK_IMAGE =
