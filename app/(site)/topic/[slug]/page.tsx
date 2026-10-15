@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import ArticleSiteHeader from '@/src/components/site/ArticleSiteHeader';
+import SiteFooter from '@/src/components/site/SiteFooter';
 import { connectToDatabase } from '@/src/lib/db';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
 import { getNavCategories } from '@/src/services/news';
+import { getPublicStaticPages } from '@/src/services/adminPageService';
 import AdSlot from '@/src/models/AdSlot';
 import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
@@ -149,6 +151,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
     sidebarAd,
     betweenAd,
     trendingTopics,
+    staticPagesList,
   ] = await Promise.all([
     Post.countDocuments(postFilter),
     Post.find(postFilter)
@@ -166,6 +169,7 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
     AdSlot.findOne({ position: 'sidebar', isActive: true }).lean(),
     AdSlot.findOne({ position: 'between-sections', isActive: true }).lean(),
     getPublicTrendingTopics().catch(() => []),
+    getPublicStaticPages().catch(() => []),
   ]);
 
   if (!tagDoc && posts.length === 0) {
@@ -485,25 +489,11 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-10 mt-12 text-slate-600 dark:text-slate-400 text-sm">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <span>{settings?.copyrightText || `© ${new Date().getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}</span>
-            {settings?.footerAddress && (
-              <span className="text-center sm:text-right">
-                অফিস: {settings.footerAddress}
-                {settings?.phone && ` • মোবাইল: ${settings.phone}`}
-                {settings?.email && ` • ইমেইল: ${settings.email}`}
-              </span>
-            )}
-            <div className="flex items-center gap-4">
-              <Link href="/" className="hover:underline">হোম</Link>
-              <Link href="/privacy" className="hover:underline">গোপনীয়তা নীতি</Link>
-              <Link href="/contact" className="hover:underline">যোগাযোগ</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        settings={settings}
+        navCategories={navCategories}
+        staticPages={staticPagesList}
+      />
     </div>
   );
 }

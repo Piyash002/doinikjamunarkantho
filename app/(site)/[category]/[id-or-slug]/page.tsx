@@ -7,6 +7,7 @@ import sanitizeHtml from "sanitize-html";
 
 import ArticleActions from "@/src/components/site/ArticleActions";
 import ArticleSiteHeader from "@/src/components/site/ArticleSiteHeader";
+import SiteFooter from "@/src/components/site/SiteFooter";
 import StickyArticleAd from "@/src/components/site/StickyArticleAd";
 import { connectToDatabase } from "@/src/lib/db";
 import AdSlot from "@/src/models/AdSlot";
@@ -15,6 +16,7 @@ import Settings from "@/src/models/Settings";
 import { getPostBySlug } from "@/src/services/getPostBySlug";
 import { getPublicTrendingTopics } from "@/src/services/adminTagService";
 import { getNavCategories } from "@/src/services/news";
+import { getPublicStaticPages } from "@/src/services/adminPageService";
 import { toBanglaNumber } from "@/src/lib/dateUtils";
 
 export const revalidate = 60;
@@ -396,11 +398,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   await connectToDatabase();
-  const [settings, categories, stickyAd, trendingTopics] = await Promise.all([
+  const [settings, categories, stickyAd, trendingTopics, staticPagesList] = await Promise.all([
     Settings.findOne({}).sort({ createdAt: -1 }).lean(),
     getNavCategories().catch(() => []),
     AdSlot.findOne({ position: "sticky-bottom", isActive: true, imageUrl: { $ne: "" } }).lean(),
     getPublicTrendingTopics().catch(() => []),
+    getPublicStaticPages().catch(() => []),
   ]);
 
   const { post, category, author, related, popular, latest, previous, next, ads } = result;
@@ -723,31 +726,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </aside>
         </div>
 
-        <footer className="article-footer">
-          <div className="article-footer-editor">
-            <Link aria-label={`${siteName} - হোম`} href="/">
-              <Image alt={siteName} height={54} src={settings?.logo?.url || "/logo.png"} width={225} />
-            </Link>
-            <p>ভারপ্রাপ্ত সম্পাদক: {settings?.editorName || "সম্পাদক"}</p>
-          </div>
-          <nav aria-label="ফুটার লিংক" className="article-footer-links">
-            <Link href="/privacy">গোপনীয়তার নীতি</Link>
-            <Link href="/terms">ব্যবহারের শর্তাবলি</Link>
-            <Link href="/contact">যোগাযোগ</Link>
-            <Link href="/about">আমাদের সম্পর্কে</Link>
-            <Link href="/we">আমরা</Link>
-            <Link href="/archive">আর্কাইভ</Link>
-            <Link href="/advertise">বিজ্ঞাপন</Link>
-          </nav>
-          <address className="article-footer-contact">
-            {settings?.footerAddress && <span>অফিস: {settings.footerAddress}</span>}
-            {settings?.phone && <a href={`tel:${String(settings.phone).replace(/[০-৯]/g, (d) => String(["০","১","২","৩","৪","৫","৬","৭","৮","৯"].indexOf(d))).replace(/[^0-9+]/g, "")}`}>মোবাইল: {settings.phone}</a>}
-            {settings?.email && <a href={`mailto:${settings.email}`}>ইমেইল: {settings.email}</a>}
-          </address>
-          <p className="article-footer-copyright">
-            {settings?.copyrightText || `© ${new Date(publishedAt || post.createdAt).getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}
-          </p>
-        </footer>
+        <SiteFooter
+          settings={settings}
+          navCategories={categories}
+          staticPages={staticPagesList}
+        />
       </div>
       {stickyAd?.imageUrl && <StickyArticleAd imageUrl={stickyAd.imageUrl} link={stickyAd.link || "#"} />}
       <script dangerouslySetInnerHTML={{ __html: safeJsonLd(newsArticleSchema) }} type="application/ld+json" />

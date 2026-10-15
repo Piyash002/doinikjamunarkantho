@@ -4,13 +4,17 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import ArticleSiteHeader from '@/src/components/site/ArticleSiteHeader';
+import SiteFooter from '@/src/components/site/SiteFooter';
+import StaticPageView from '@/src/components/site/StaticPageView';
 import { connectToDatabase } from '@/src/lib/db';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
 import { getNavCategories, getSubCategories } from '@/src/services/news';
+import { getPublicStaticPageBySlug, getPublicStaticPages } from '@/src/services/adminPageService';
 import AdSlot from '@/src/models/AdSlot';
 import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
 import Settings from '@/src/models/Settings';
+import StaticPage from '@/src/models/StaticPage';
 
 export const revalidate = 60;
 
@@ -141,6 +145,26 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
   const selectedSub = resolvedSearchParams?.sub ? decodeURIComponent(resolvedSearchParams.sub) : '';
 
   await connectToDatabase();
+
+  // 0. Static Page Check for SEO metadata
+  const staticPage = await getPublicStaticPageBySlug(slug);
+  if (staticPage) {
+    const settings = await Settings.findOne({}).lean();
+    const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
+    const pageTitle = staticPage.seo?.title || staticPage.title;
+    const pageDesc = staticPage.seo?.description || staticPage.excerpt || `${pageTitle} - ${siteName}`;
+    return {
+      title: `${pageTitle} | ${siteName}`,
+      description: pageDesc,
+      openGraph: {
+        title: `${pageTitle} | ${siteName}`,
+        description: pageDesc,
+        images: staticPage.featuredImage?.url ? [staticPage.featuredImage.url] : undefined,
+        type: 'article',
+      },
+    };
+  }
+
   const [cat, settings, subCat] = await Promise.all([
     Category.findOne({
       isActive: true,
@@ -192,6 +216,29 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const postsPerPage = 13; // 1 lead + 4 secondary + 8 serial list
 
   await connectToDatabase();
+
+  // 0. Static Page Check & Render View
+  const staticPage = await getPublicStaticPageBySlug(currentCategorySlug);
+  if (staticPage) {
+    const [navCategories, settings, staticPagesList, trendingTopics, headerAd] = await Promise.all([
+      getNavCategories().catch(() => []),
+      Settings.findOne({}).lean().catch(() => null),
+      getPublicStaticPages().catch(() => []),
+      getPublicTrendingTopics().catch(() => []),
+      AdSlot.findOne({ position: 'header_banner', isActive: true }).lean().catch(() => null),
+    ]);
+
+    return (
+      <StaticPageView
+        page={JSON.parse(JSON.stringify(staticPage))}
+        settings={JSON.parse(JSON.stringify(settings || {}))}
+        navCategories={JSON.parse(JSON.stringify(navCategories || []))}
+        staticPages={JSON.parse(JSON.stringify(staticPagesList || []))}
+        trendingTopics={JSON.parse(JSON.stringify(trendingTopics || []))}
+        headerAd={headerAd ? JSON.parse(JSON.stringify(headerAd)) : null}
+      />
+    );
+  }
 
   const isAllOrLatest =
     currentCategorySlug === 'all' ||
@@ -314,6 +361,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     sidebarAd,
     betweenAd,
     trendingTopics,
+    staticPagesList,
   ] = await Promise.all([
     Post.countDocuments(postFilter),
     Post.find(postFilter)
@@ -335,6 +383,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     AdSlot.findOne({ position: 'sidebar', isActive: true }).lean(),
     AdSlot.findOne({ position: 'between-sections', isActive: true }).lean(),
     getPublicTrendingTopics().catch(() => []),
+    getPublicStaticPages().catch(() => []),
   ]);
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
@@ -877,81 +926,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       </div>
 
       {/* Site Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-10 mt-12 text-slate-600 dark:text-slate-400 text-sm">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div className="md:col-span-1">
-              <Link href="/" className="inline-block mb-3">
-                <Image
-                  src={logoUrl}
-                  alt={siteName}
-                  width={220}
-                  height={55}
-                  className="h-10 w-auto object-contain"
-                  unoptimized
-                />
-              </Link>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                সত্য ও বস্তুনিষ্ঠ সাংবাদিকতায় অবিচল। ২৪ ঘণ্টা দেশ ও আন্তর্জাতিক সংবাদের বিশ্বস্ত ঠিকানা।
-              </p>
-            </div>
-
-            <div className="md:col-span-2">
-              <strong className="text-slate-900 dark:text-slate-100 text-sm block mb-3 font-bold">
-                জনপ্রিয় বিভাগসমূহ
-              </strong>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                {navCategories.slice(0, 12).map((cat) => (
-                  <Link
-                    key={cat.slug}
-                    href={`/${encodeURIComponent(cat.slug)}`}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors py-0.5"
-                  >
-                    {cat.name_bn}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="md:col-span-1">
-              <strong className="text-slate-900 dark:text-slate-100 text-sm block mb-3 font-bold">
-                যোগাযোগ ও কার্যালয়
-              </strong>
-              {settings?.footerAddress && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5 leading-relaxed">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">অফিস:</span> {settings.footerAddress}
-                </p>
-              )}
-              {settings?.phone && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">মোবাইল:</span>{" "}
-                  <a href={`tel:${String(settings.phone).replace(/[০-৯]/g, (d) => String(["০","১","২","৩","৪","৫","৬","৭","৮","৯"].indexOf(d))).replace(/[^0-9+]/g, "")}`} className="hover:underline">{settings.phone}</a>
-                </p>
-              )}
-              {settings?.email && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">ইমেইল:</span>{" "}
-                  <a href={`mailto:${settings.email}`} className="hover:underline">{settings.email}</a>
-                </p>
-              )}
-              {settings?.editorName && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">সম্পাদক ও প্রকাশক:</span> {settings.editorName}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <span>{settings?.copyrightText || `© ${new Date().getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}</span>
-            <div className="flex items-center gap-4">
-              <Link href="/about" className="hover:underline">আমাদের সম্পর্কে</Link>
-              <Link href="/privacy" className="hover:underline">গোপনীয়তা নীতি</Link>
-              <Link href="/contact" className="hover:underline">যোগাযোগ</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        settings={settings}
+        navCategories={navCategories}
+        staticPages={staticPagesList}
+      />
     </div>
   );
 }

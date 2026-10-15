@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import ArticleSiteHeader from "./ArticleSiteHeader";
 import HomeCategorySections, { CategorySectionItem } from "./HomeCategorySections";
+import SiteFooter, { StaticPageItem } from "./SiteFooter";
 import {
   toBanglaNumber,
   formatBanglaDate,
@@ -73,6 +74,9 @@ type HomePageClientProps = {
     youtube?: string;
     instagram?: string;
   };
+  whatsappChannel?: string;
+  googlePlayLink?: string;
+  staticPages?: StaticPageItem[];
 };
 
 const FALLBACK_CATEGORIES: string[] = [
@@ -191,6 +195,9 @@ export default function HomePageClient({
   editorName,
   copyrightText,
   socialLinks,
+  whatsappChannel,
+  googlePlayLink,
+  staticPages = [],
   navCategories = FALLBACK_CATEGORIES,
   trendingKeywords = FALLBACK_TRENDING,
   trendingTopics = [],
@@ -715,109 +722,31 @@ export default function HomePageClient({
           <a href="#top">সব খবর দেখুন <span aria-hidden="true">↗</span></a>
         </section>
 
-        <footer className="site-footer" id="footer">
-          <div className="footer-main">
-            <div className="footer-brand-block">
-              <a className="brand footer-brand" href="#top">
-                <span className="brand-name">{siteName}</span>
-              </a>
-              <p>সত্য ও বস্তুনিষ্ঠ সংবাদে, প্রতিদিন আপনার পাশে।</p>
-              <div className="social-links" aria-label="সামাজিক যোগাযোগমাধ্যম">
-                <a
-                  href={socialLinks?.facebook || "#footer"}
-                  target={socialLinks?.facebook ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  aria-label="ফেসবুক"
-                >
-                  f
-                </a>
-                <a
-                  href={socialLinks?.x || "#footer"}
-                  target={socialLinks?.x ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  aria-label="এক্স"
-                >
-                  𝕏
-                </a>
-                <a
-                  href={socialLinks?.instagram || "#footer"}
-                  target={socialLinks?.instagram ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  aria-label="ইনস্টাগ্রাম"
-                >
-                  ◎
-                </a>
-                <a
-                  href={socialLinks?.youtube || "#footer"}
-                  target={socialLinks?.youtube ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  aria-label="ইউটিউব"
-                >
-                  ▶
-                </a>
-              </div>
-            </div>
-
-            <div className="footer-links">
-              <strong>আমাদের বিভাগ</strong>
-              {normalizedCategories.slice(0, 5).map((category) => {
-                const name = getCategoryName(category as string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined);
-                const slug = typeof category === "object" && category?.slug ? category.slug : "";
-                if (slug && slug !== "all" && slug !== "latest") {
-                  return (
-                    <Link key={name} href={`/${encodeURIComponent(slug)}`}>
-                      {name}
-                    </Link>
-                  );
-                }
-                return (
-                  <button key={name} onClick={() => selectCategory(name)} type="button">
-                    {name}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="footer-links">
-              <strong>আরও জানুন</strong>
-              <Link href="/about">আমাদের সম্পর্কে</Link>
-              <Link href="/contact">যোগাযোগ</Link>
-              <Link href="/privacy">গোপনীয়তা নীতি</Link>
-              <Link href="/advertise">বিজ্ঞাপন</Link>
-            </div>
-
-            <div className="footer-contact-block">
-              <strong>যোগাযোগ ও কার্যালয়</strong>
-              <p className="footer-contact-item">
-                <span className="contact-label">অফিস:</span> {footerAddress}
-              </p>
-              <p className="footer-contact-item">
-                <span className="contact-label">মোবাইল:</span>{" "}
-                <a href={`tel:${toEnglishPhone(phone)}`}>{phone}</a>
-              </p>
-              <p className="footer-contact-item">
-                <span className="contact-label">ইমেইল:</span>{" "}
-                <a href={`mailto:${email}`}>{email}</a>
-              </p>
-              {editorName ? (
-                <p className="footer-contact-item">
-                  <span className="contact-label">সম্পাদক ও প্রকাশক:</span> {editorName}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <span>{copyrightText || `© ${new Date().getFullYear()} ${siteName}। সর্বস্বত্ব সংরক্ষিত।`}</span>
-            <div className="footer-bottom-contact">
-              <span>অফিস: {footerAddress}</span>
-              <i aria-hidden="true" />
-              <span>মোবাইল: <a href={`tel:${toEnglishPhone(phone)}`}>{phone}</a></span>
-              <i aria-hidden="true" />
-              <span>ইমেইল: <a href={`mailto:${email}`}>{email}</a></span>
-            </div>
-          </div>
-        </footer>
+        <SiteFooter
+          siteName={siteName}
+          logoUrl={logoUrl}
+          footerAddress={footerAddress}
+          phone={phone}
+          email={email}
+          editorName={editorName}
+          copyrightText={copyrightText}
+          socialLinks={socialLinks}
+          whatsappChannel={whatsappChannel}
+          googlePlayLink={googlePlayLink}
+          navCategories={normalizedCategories
+            .map((cat) => {
+              if (typeof cat === "object" && cat !== null) {
+                return {
+                  name_bn: cat.name_bn || "",
+                  slug: cat.slug || "",
+                  name_en: cat.name_en,
+                };
+              }
+              return { name_bn: String(cat), slug: "" };
+            })
+            .filter((c) => c.slug)}
+          staticPages={staticPages}
+        />
       </div>
     </main>
   );

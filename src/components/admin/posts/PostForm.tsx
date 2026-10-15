@@ -800,15 +800,6 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               />
             </FormField>
 
-            <FormField label="Custom URL Slug (স্লাগ)">
-              <Input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="url-slug..."
-                className="font-mono text-xs text-slate-500 min-h-[48px]"
-              />
-            </FormField>
-
             <FormField label="Lead Hook (প্রথম ১-২ অনুচ্ছেদ)" hint="সংবাদের প্রারম্ভিক মূল অংশ">
               <Textarea
                 value={lead}

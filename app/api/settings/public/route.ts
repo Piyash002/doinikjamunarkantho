@@ -24,6 +24,14 @@ export async function GET() {
         adminFavicon: '',
         adminPrimaryColor: '#0a2b3a',
         adminTealColor: '#1b7d95',
+        footerAddress: 'এস এস রোড সিরাজগঞ্জ, মুক্তিযোদ্ধা সংসদ গলি।',
+        editorName: '',
+        phone: '০১৬৭৭৯০৫৫৭০',
+        email: 'mdrubelhossainjournalits@gmail.com',
+        socialLinks: { facebook: '', x: '', youtube: '', instagram: '' },
+        copyrightText: '© ২০২৬ দৈনিক যমুনা কণ্ঠ। সর্বস্বত্ব সংরক্ষিত।',
+        whatsappChannel: '',
+        googlePlayLink: '',
       });
     }
 
@@ -40,6 +48,14 @@ export async function GET() {
       adminFavicon: settings.adminFavicon || '',
       adminPrimaryColor: settings.adminPrimaryColor || '#0a2b3a',
       adminTealColor: settings.adminTealColor || '#1b7d95',
+      footerAddress: settings.footerAddress || '',
+      editorName: settings.editorName || '',
+      phone: settings.phone || '',
+      email: settings.email || '',
+      socialLinks: settings.socialLinks || { facebook: '', x: '', youtube: '', instagram: '' },
+      copyrightText: settings.copyrightText || '© ২০২৬ দৈনিক যমুনা কণ্ঠ। সর্বস্বত্ব সংরক্ষিত।',
+      whatsappChannel: settings.whatsappChannel || '',
+      googlePlayLink: settings.googlePlayLink || '',
     });
   } catch (error) {
     return apiError(error, 500);

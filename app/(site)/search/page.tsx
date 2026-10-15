@@ -3,9 +3,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import ArticleSiteHeader from '@/src/components/site/ArticleSiteHeader';
+import SiteFooter from '@/src/components/site/SiteFooter';
 import { connectToDatabase } from '@/src/lib/db';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
 import { getNavCategories } from '@/src/services/news';
+import { getPublicStaticPages } from '@/src/services/adminPageService';
 import Post from '@/src/models/Post';
 import Settings from '@/src/models/Settings';
 
@@ -66,7 +68,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     ];
   }
 
-  const [totalPosts, posts, settings, navCategories, trendingTopics] = await Promise.all([
+  const [totalPosts, posts, settings, navCategories, trendingTopics, staticPagesList] = await Promise.all([
     query ? Post.countDocuments(postFilter) : Promise.resolve(0),
     query
       ? Post.find(postFilter)
@@ -78,6 +80,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     Settings.findOne({}).lean(),
     getNavCategories().catch(() => []),
     getPublicTrendingTopics().catch(() => []),
+    getPublicStaticPages().catch(() => []),
   ]);
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
@@ -176,6 +179,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
         )}
       </div>
+      <SiteFooter
+        settings={settings}
+        navCategories={navCategories}
+        staticPages={staticPagesList}
+      />
     </div>
   );
 }

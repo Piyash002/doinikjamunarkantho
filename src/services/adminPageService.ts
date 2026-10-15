@@ -152,3 +152,67 @@ export async function deleteAdminStaticPage(id: string, session: AdminUserSessio
 
   return { success: true };
 }
+
+export const STATIC_PAGE_ALIASES: Record<string, string> = {
+  privacy: 'privacy-policy',
+  'privacy-policy': 'privacy-policy',
+  terms: 'terms',
+  tos: 'terms',
+  'terms-of-service': 'terms',
+  'terms-and-conditions': 'terms',
+  about: 'about',
+  'about-us': 'about',
+  contact: 'contact',
+  'contact-us': 'contact',
+  advertise: 'advertise',
+  ads: 'advertise',
+};
+
+export async function getPublicStaticPages() {
+  await connectToDatabase();
+  let pages = await StaticPage.find({ isActive: true })
+    .select('title slug')
+    .sort({ createdAt: 1 })
+    .lean();
+
+  if (pages.length === 0) {
+    try {
+      await StaticPage.insertMany(DEFAULT_PAGES);
+      pages = await StaticPage.find({ isActive: true })
+        .select('title slug')
+        .sort({ createdAt: 1 })
+        .lean();
+    } catch {
+      // ignore concurrent insert collisions
+    }
+  }
+
+  return pages.map((p: any) => ({
+    _id: String(p._id),
+    title: p.title,
+    slug: p.slug,
+  }));
+}
+
+export async function getPublicStaticPageBySlug(slug: string) {
+  if (!slug || typeof slug !== 'string') return null;
+  await connectToDatabase();
+
+  const trimmed = slug.trim();
+  const normalized = trimmed.toLowerCase();
+  const targetSlug = STATIC_PAGE_ALIASES[normalized] || normalized;
+
+  let page = await StaticPage.findOne({
+    isActive: true,
+    $or: [{ slug: targetSlug }, { slug: normalized }, { slug: trimmed }],
+  }).lean();
+
+  if (!page) {
+    page = await StaticPage.findOne({
+      isActive: true,
+      slug: new RegExp(`^${targetSlug}$`, 'i'),
+    }).lean();
+  }
+
+  return page;
+}
