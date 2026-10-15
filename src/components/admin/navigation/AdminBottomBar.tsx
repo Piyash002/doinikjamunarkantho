@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, FileText, Plus, Image as ImageIcon, Menu } from 'lucide-react';
+import { useAdminSettings } from '../AdminSettingsContext';
 
 export interface AdminBottomBarProps {
   onOpenMore: () => void;
@@ -11,6 +12,7 @@ export interface AdminBottomBarProps {
 
 export function AdminBottomBar({ onOpenMore }: AdminBottomBarProps) {
   const pathname = usePathname();
+  const { adminPrimaryColor } = useAdminSettings();
 
   function isActive(href: string) {
     if (href === '/admin') return pathname === '/admin';
@@ -59,6 +61,7 @@ export function AdminBottomBar({ onOpenMore }: AdminBottomBarProps) {
                 key={idx}
                 href={item.href!}
                 className="flex items-center justify-center -mt-5 w-12 h-12 rounded-full bg-[#0a2b3a] dark:bg-[#1b7d95] text-white shadow-lg shadow-teal-900/20 active:scale-95 transition-transform"
+                style={{ backgroundColor: adminPrimaryColor || undefined }}
                 aria-label="Create new article"
               >
                 {item.icon}

@@ -7,11 +7,21 @@ import { Eye, EyeOff, Lock, User, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Button } from '@/src/components/admin/ui/Button';
 import { Input } from '@/src/components/admin/ui/Input';
 import { Checkbox } from '@/src/components/admin/ui/Checkbox';
+import { useAdminSettings } from '@/src/components/admin/AdminSettingsContext';
 
-export default function LoginForm() {
+interface LoginFormProps {
+  initialLogo?: string;
+  initialBrandColor?: string;
+}
+
+export default function LoginForm({ initialLogo = '', initialBrandColor = '#0a2b3a' }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/admin';
+  const { adminLogo, effectiveLogo, adminPrimaryColor, adminTealColor } = useAdminSettings();
+
+  const activeLogoUrl = effectiveLogo?.url || adminLogo?.url || initialLogo;
+  const activeBrandColor = adminPrimaryColor || initialBrandColor;
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -51,17 +61,28 @@ export default function LoginForm() {
   return (
     <div className="min-h-[100dvh] flex flex-col justify-center items-center p-4 sm:p-6 bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100">
       <div className="w-full max-w-md flex flex-col items-center">
-        {/* Newspaper Branding */}
-        <div className="flex flex-col items-center gap-2 mb-8 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#0a2b3a] dark:bg-[#1b7d95] text-white flex items-center justify-center font-black text-2xl shadow-lg shadow-teal-950/20">
-            য
-          </div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            দৈনিক যমুনা কণ্ঠ
-          </h2>
-          <span className="text-xs uppercase tracking-widest font-bold text-[#1b7d95]">
-            Editorial Newsroom CMS
-          </span>
+        {/* Dynamic Logo Section (Prominent, High-Resolution, No Redundant Text) */}
+        <div className="flex flex-col items-center justify-center mb-8 w-full">
+          {activeLogoUrl ? (
+            <div className="w-full max-w-[280px] sm:max-w-[340px] h-20 sm:h-24 flex items-center justify-center px-3 py-1">
+              <Image
+                src={activeLogoUrl}
+                alt="Logo"
+                width={340}
+                height={96}
+                priority
+                className="max-h-full max-w-full w-auto h-auto object-contain drop-shadow-sm transition-transform duration-200 hover:scale-105"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div
+              className="w-16 h-16 rounded-2xl text-white flex items-center justify-center font-black text-2xl shadow-xl shadow-teal-950/20"
+              style={{ backgroundColor: activeBrandColor }}
+            >
+              CMS
+            </div>
+          )}
         </div>
 
         {/* Login Card */}

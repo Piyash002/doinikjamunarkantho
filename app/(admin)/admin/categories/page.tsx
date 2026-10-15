@@ -150,7 +150,7 @@ function SortableCategoryItem({
       <div className="flex items-center gap-2 shrink-0">
         <div className="hidden sm:flex items-center gap-1.5 mr-2">
           {category.showInNav && <Badge variant="info">Nav</Badge>}
-          {category.showOnHome && <Badge variant="success">Home</Badge>}
+          {category.showOnHome && <Badge variant="info">Home #{category.homeOrder || 1}</Badge>}
         </div>
 
         <Button
@@ -190,10 +190,11 @@ export default function CategoriesPage() {
   // Form State
   const [nameBn, setNameBn] = useState('');
   const [nameEn, setNameEn] = useState('');
-  const [homeLayout, setHomeLayout] = useState('hero');
+  const [homeLayout, setHomeLayout] = useState('lead-plus-list');
   const [parent, setParent] = useState('');
   const [showInNav, setShowInNav] = useState(true);
   const [showOnHome, setShowOnHome] = useState(true);
+  const [homeOrder, setHomeOrder] = useState(1);
   const [isActive, setIsActive] = useState(true);
 
   // Sync SWR data to local state
@@ -259,10 +260,11 @@ export default function CategoriesPage() {
     setEditingCategory(null);
     setNameBn('');
     setNameEn('');
-    setHomeLayout('hero');
+    setHomeLayout('lead-plus-list');
     setParent('');
     setShowInNav(true);
     setShowOnHome(true);
+    setHomeOrder(categories.length + 1);
     setIsActive(true);
     setIsModalOpen(true);
   }
@@ -271,10 +273,11 @@ export default function CategoriesPage() {
     setEditingCategory(cat);
     setNameBn(cat.name_bn || '');
     setNameEn(cat.name_en || '');
-    setHomeLayout(cat.homeLayout || 'hero');
+    setHomeLayout(cat.homeLayout || 'lead-plus-list');
     setParent(cat.parent?._id || cat.parent || '');
     setShowInNav(cat.showInNav !== false);
     setShowOnHome(cat.showOnHome !== false);
+    setHomeOrder(cat.homeOrder || 1);
     setIsActive(cat.isActive !== false);
     setIsModalOpen(true);
   }
@@ -296,6 +299,7 @@ export default function CategoriesPage() {
         parent: parent || null,
         showInNav,
         showOnHome,
+        homeOrder: Number(homeOrder) || 1,
         isActive,
       };
 
@@ -474,8 +478,20 @@ export default function CategoriesPage() {
             <Switch
               checked={showOnHome}
               onChange={setShowOnHome}
-              label="Display Category Section on Homepage"
+              label="Display Category Section on Homepage (হোমপেজে পিন করুন)"
             />
+            {showOnHome && (
+              <FormField label="Homepage Serial Order (হোমপেজে প্রদর্শনের ক্রম)">
+                <Input
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={homeOrder}
+                  onChange={(e) => setHomeOrder(parseInt(e.target.value, 10) || 1)}
+                  placeholder="e.g. 1, 2, 3..."
+                />
+              </FormField>
+            )}
             <Switch
               checked={isActive}
               onChange={setIsActive}

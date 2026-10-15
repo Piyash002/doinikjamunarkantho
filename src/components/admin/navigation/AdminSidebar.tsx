@@ -25,6 +25,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useAdminAuth } from '../AdminAuthContext';
+import { useAdminSettings } from '../AdminSettingsContext';
 
 export interface AdminSidebarProps {
   isCollapsed: boolean;
@@ -54,6 +55,8 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAdminAuth();
+  const { adminPanelName, adminSubtitle, adminLogo, effectiveLogo, adminPrimaryColor, adminTealColor } = useAdminSettings();
+  const currentLogo = effectiveLogo?.url ? effectiveLogo : (adminLogo?.url ? adminLogo : null);
 
   const role = user?.role || 'admin';
 
@@ -177,24 +180,68 @@ export function AdminSidebar({
       } ${className}`}
     >
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+      <div className={`h-16 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 shrink-0 ${isCollapsed ? 'px-2 justify-center' : 'px-4'}`}>
         <Link
           href="/admin"
           onClick={onLinkClick}
-          className="flex items-center gap-2.5 overflow-hidden"
+          className={`flex items-center overflow-hidden transition-all ${isCollapsed ? 'justify-center w-full' : 'flex-1 min-w-0 pr-2'}`}
         >
-          <div className="w-9 h-9 rounded-xl bg-[#0a2b3a] dark:bg-[#1b7d95] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
-            য
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100 tracking-tight leading-tight truncate">
-                যমুনা কণ্ঠ
-              </span>
-              <span className="text-[10px] uppercase font-bold text-[#1b7d95] tracking-wider">
-                Newsroom
-              </span>
-            </div>
+          {isCollapsed ? (
+            /* Collapsed view: centered icon */
+            currentLogo?.url ? (
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
+                <Image
+                  src={currentLogo.url}
+                  alt="Admin Logo"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <div
+                className="w-10 h-10 rounded-xl text-white flex items-center justify-center font-bold text-sm shadow-xs"
+                style={{ backgroundColor: adminPrimaryColor || '#0a2b3a' }}
+              >
+                {(adminPanelName || 'A')[0]}
+              </div>
+            )
+          ) : (
+            /* Expanded view: Prominent large logo, clear and readable, no redundant text */
+            currentLogo?.url ? (
+              <div className="h-11 w-full max-w-[195px] flex items-center">
+                <Image
+                  src={currentLogo.url}
+                  alt="Admin Logo"
+                  width={195}
+                  height={44}
+                  priority
+                  className="max-h-full max-w-full w-auto h-auto object-contain object-left drop-shadow-xs"
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className="w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs"
+                  style={{ backgroundColor: adminPrimaryColor || '#0a2b3a' }}
+                >
+                  {(adminPanelName || 'A')[0]}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-extrabold text-sm text-slate-900 dark:text-slate-100 tracking-tight leading-tight truncate">
+                    {adminPanelName || 'Admin Panel'}
+                  </span>
+                  <span
+                    className="text-[10px] uppercase font-bold text-[#1b7d95] tracking-wider truncate"
+                    style={{ color: adminTealColor || undefined }}
+                  >
+                    {adminSubtitle || 'Newsroom'}
+                  </span>
+                </div>
+              </div>
+            )
           )}
         </Link>
 
@@ -202,7 +249,7 @@ export function AdminSidebar({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -265,7 +312,10 @@ export function AdminSidebar({
         </Link>
 
         <div className={`flex items-center gap-2.5 p-2 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 ${isCollapsed ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 rounded-full bg-[#0a2b3a] dark:bg-[#1b7d95] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+          <div
+            className="w-8 h-8 rounded-full bg-[#0a2b3a] dark:bg-[#1b7d95] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0"
+            style={{ backgroundColor: adminPrimaryColor || undefined }}
+          >
             {user?.name?.[0] || user?.username?.[0] || 'A'}
           </div>
           {!isCollapsed && (
@@ -273,7 +323,12 @@ export function AdminSidebar({
               <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                 {user?.name || user?.username}
               </p>
-              <p className="text-[10px] text-[#1b7d95] dark:text-sky-400 capitalize font-semibold">{user?.role}</p>
+              <p
+                className="text-[10px] text-[#1b7d95] dark:text-sky-400 capitalize font-semibold"
+                style={{ color: adminTealColor || undefined }}
+              >
+                {user?.role}
+              </p>
             </div>
           )}
           {!isCollapsed && (

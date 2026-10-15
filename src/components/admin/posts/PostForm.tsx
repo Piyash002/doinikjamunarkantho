@@ -441,7 +441,7 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
   });
 
   return (
-    <div className="flex flex-col gap-6 pb-20 sm:pb-8">
+    <div className="flex flex-col gap-6 pb-28 sm:pb-12">
       {/* Page Header with Save status & Revisions trigger */}
       <PageHeader
         title={isEditing ? 'Edit Article' : 'Write New Article'}
@@ -475,10 +475,12 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               type="button"
               variant="outline"
               size="sm"
-              leftIcon={<Eye className="w-4 h-4" />}
               onClick={handlePreview}
+              title="Preview"
+              className="px-2.5 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
+              leftIcon={<Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
             >
-              Preview
+              <span className="hidden xs:inline">Preview</span>
             </Button>
 
             {/* Save Draft */}
@@ -488,9 +490,9 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               size="sm"
               isLoading={isSubmitting}
               onClick={() => handleSubmit('draft')}
-              className="hidden sm:inline-flex"
+              className="px-2.5 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
             >
-              Save Draft
+              Draft
             </Button>
 
             {/* Publish Button */}
@@ -500,8 +502,8 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
               size="sm"
               isLoading={isSubmitting}
               onClick={() => handleSubmit(status === 'scheduled' ? 'scheduled' : 'published')}
-              leftIcon={<Send className="w-4 h-4" />}
-              className="hidden sm:inline-flex"
+              leftIcon={<Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              className="px-2.5 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm"
             >
               {status === 'scheduled' ? 'Schedule' : 'Publish'}
             </Button>
@@ -1004,37 +1006,53 @@ export function PostForm({ initialData, isEditing = false }: PostFormProps) {
         </div>
       </div>
 
-      {/* MOBILE STICKY BOTTOM ACTION BAR (Hidden on desktop >= 768px) */}
-      <div className="sm:hidden fixed bottom-16 inset-x-0 z-30 p-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          fullWidth
-          isLoading={isSubmitting}
-          onClick={() => handleSubmit('draft')}
-        >
-          Draft
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handlePreview}
-          aria-label="Preview"
-        >
-          <Eye className="w-4 h-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          size="sm"
-          fullWidth
-          isLoading={isSubmitting}
-          onClick={() => handleSubmit(status === 'scheduled' ? 'scheduled' : 'published')}
-        >
-          {status === 'scheduled' ? 'Schedule' : 'Publish'}
-        </Button>
+      {/* IN-FLOW BOTTOM ACTIONS CARD (Flows naturally on scroll without sticking or blocking screen) */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 my-6">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 w-full sm:w-auto">
+          <span className="font-medium">বর্তমান স্ট্যাটাস:</span>
+          <span className="font-semibold text-slate-800 dark:text-slate-200 uppercase">
+            {status === 'scheduled' ? 'সিডিউলড (Scheduled)' : status === 'published' ? 'লাইভ (Published)' : 'ড্রাফট (Draft)'}
+          </span>
+          {hasUnsavedChanges && (
+            <span className="text-amber-500 font-medium">• অসংরক্ষিত পরিবর্তন</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handlePreview}
+            leftIcon={<Eye className="w-4 h-4" />}
+            className="flex-1 sm:flex-initial"
+          >
+            প্রিভিউ
+          </Button>
+
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            isLoading={isSubmitting}
+            onClick={() => handleSubmit('draft')}
+            className="flex-1 sm:flex-initial"
+          >
+            ড্রাফট সংরক্ষণ
+          </Button>
+
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            isLoading={isSubmitting}
+            onClick={() => handleSubmit(status === 'scheduled' ? 'scheduled' : 'published')}
+            leftIcon={<Send className="w-4 h-4" />}
+            className="flex-1 sm:flex-initial"
+          >
+            {status === 'scheduled' ? 'সিডিউল করুন' : 'পাবলিশ করুন'}
+          </Button>
+        </div>
       </div>
 
       {/* Revisions History Modal */}

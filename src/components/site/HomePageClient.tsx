@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import ArticleSiteHeader from "./ArticleSiteHeader";
+import HomeCategorySections, { CategorySectionItem } from "./HomeCategorySections";
 
 type CategoryInput = string | { name_bn?: string; name_en?: string; slug?: string } | null | undefined;
 
@@ -51,6 +52,7 @@ type HomePageClientProps = {
   opinionPosts?: PostLike[];
   breakingPosts?: PostLike[];
   trendingPosts?: PostLike[];
+  categorySections?: CategorySectionItem[];
   ads?: Record<string, { imageUrl?: string; link?: string; position?: string; key?: string; sizeHint?: string }>;
   footerAddress?: string;
   phone?: string;
@@ -196,6 +198,7 @@ export default function HomePageClient({
   opinionPosts = [],
   breakingPosts = [],
   trendingPosts = [],
+  categorySections = [],
   ads = {},
 }: HomePageClientProps) {
   const [activeCategory, setActiveCategory] = useState("সর্বশেষ");
@@ -570,6 +573,11 @@ export default function HomePageClient({
             </a>
           </div>
         ) : null}
+
+        {/* Pinned Category News Sections (Dhaka Post Style, Serially Ordered by Admin) */}
+        {categorySections && categorySections.length > 0 && (
+          <HomeCategorySections sections={categorySections} siteName={siteName} />
+        )}
 
         <section className="news-layout" id="news-feed">
           <div className="feed-column">

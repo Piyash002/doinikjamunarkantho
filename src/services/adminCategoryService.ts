@@ -156,21 +156,38 @@ export async function deleteAdminCategory(id: string, session: AdminUserSession)
   return { success: true };
 }
 
-export async function reorderAdminCategories(items: { id: string; order: number }[], session: AdminUserSession) {
+export interface ReorderCategoryItem {
+  id: string;
+  order?: number;
+  homeOrder?: number;
+  showOnHome?: boolean;
+  homeLayout?: string;
+}
+
+export async function reorderAdminCategories(items: ReorderCategoryItem[], session: AdminUserSession) {
   await connectToDatabase();
   if (session.role === 'reporter') {
     throw new Error('Reporters cannot reorder categories.');
   }
 
-  const bulkOps = items.map((item) => ({
-    updateOne: {
-      filter: { _id: item.id },
-      update: { $set: { order: item.order } },
-    },
-  }));
+  const bulkOps = items.map((item) => {
+    const updateFields: any = {};
+    if (typeof item.order === 'number') updateFields.order = item.order;
+    if (typeof item.homeOrder === 'number') updateFields.homeOrder = item.homeOrder;
+    if (typeof item.showOnHome === 'boolean') updateFields.showOnHome = item.showOnHome;
+    if (typeof item.homeLayout === 'string') updateFields.homeLayout = item.homeLayout;
+
+    return {
+      updateOne: {
+        filter: { _id: item.id },
+        update: { $set: updateFields },
+      },
+    };
+  });
 
   await Category.bulkWrite(bulkOps);
   revalidatePath('/', 'layout');
+  revalidatePath('/');
 
   await logActivity({
     userId: session.id,

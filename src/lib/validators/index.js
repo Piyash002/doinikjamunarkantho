@@ -86,7 +86,8 @@ export const categorySchema = z.object({
   order: z.number().int().min(0).default(0),
   showInNav: z.boolean().default(true),
   showOnHome: z.boolean().default(true),
-  homeLayout: z.enum(['hero', 'lead-plus-list', 'grid-4', 'sports-3col', 'intl-3col', 'entertainment-3col']).default('hero'),
+  homeOrder: z.number().int().min(0).default(0),
+  homeLayout: z.enum(['hero', 'lead-plus-list', 'grid-4', 'sports-3col', 'intl-3col', 'entertainment-3col']).default('lead-plus-list'),
   parent: z.string().trim().nullable().optional().or(z.literal('')),
   isActive: z.boolean().default(true),
 });
@@ -95,7 +96,10 @@ export const categoryReorderSchema = z.object({
   items: z.array(
     z.object({
       id: z.string().min(1),
-      order: z.number().int(),
+      order: z.number().int().optional(),
+      homeOrder: z.number().int().optional(),
+      showOnHome: z.boolean().optional(),
+      homeLayout: z.string().optional(),
     })
   ).min(1),
 });
@@ -137,9 +141,20 @@ export const adSlotSchema = z.object({
 });
 
 export const settingsSchema = z.object({
-  siteName: z.string().trim().min(2).max(150).default('দৈনিক যমুনা কণ্ঠ'),
+  siteName: z.string().trim().min(1).max(150).default('দৈনিক যমুনা কণ্ঠ'),
   logo: mediaSchema.nullable().optional(),
   favicon: z.string().trim().optional().or(z.literal('')),
+  sitePrimaryColor: z.string().trim().max(50).optional().or(z.literal('')),
+  siteSecondaryColor: z.string().trim().max(50).optional().or(z.literal('')),
+  siteAccentColor: z.string().trim().max(50).optional().or(z.literal('')),
+
+  adminPanelName: z.string().trim().max(150).optional().or(z.literal('')),
+  adminSubtitle: z.string().trim().max(100).optional().or(z.literal('')),
+  adminLogo: mediaSchema.nullable().optional(),
+  adminFavicon: z.string().trim().optional().or(z.literal('')),
+  adminPrimaryColor: z.string().trim().max(50).optional().or(z.literal('')),
+  adminTealColor: z.string().trim().max(50).optional().or(z.literal('')),
+
   trendingKeywords: z.array(z.string().trim().min(1).max(50)).default([]),
   socialLinks: z.object({
     facebook: z.string().trim().max(300).optional().or(z.literal('')),

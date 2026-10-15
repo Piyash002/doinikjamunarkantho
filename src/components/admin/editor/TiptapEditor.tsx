@@ -44,6 +44,22 @@ import {
 } from 'lucide-react';
 import { ArticleImageConfigModal, ConfiguredImage } from './ArticleImageConfigModal';
 import { useToast } from '../ui/Toast';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
+
+// Robust helper to extract YouTube Video ID from any format (watch?v=, youtu.be, shorts, embed)
+export function extractYoutubeVideoId(url: string): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  // Direct 11-char ID
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  // Standard full or short YouTube URLs
+  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const match = trimmed.match(regExp);
+  return match && match[1]?.length === 11 ? match[1] : null;
+}
 
 // Curated text colors for journalistic content
 const TEXT_COLORS = [
@@ -179,12 +195,16 @@ export function TiptapEditor({
     height?: number;
   } | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
+  const [youtubeUrlInput, setYoutubeUrlInput] = useState('');
   const [isTextColorOpen, setIsTextColorOpen] = useState(false);
   const [isBgColorOpen, setIsBgColorOpen] = useState(false);
   const [customTextColor, setCustomTextColor] = useState('#1b7d95');
   const [customBgColor, setCustomBgColor] = useState('#fef08a');
 
   const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
+
+  const detectedVideoId = useMemo(() => extractYoutubeVideoId(youtubeUrlInput), [youtubeUrlInput]);
 
   const editor = useEditor({
     extensions: [
@@ -216,8 +236,11 @@ export function TiptapEditor({
       TableHeaderExtension,
       TableCellExtension,
       YoutubeExtension.configure({
-        width: 640,
-        height: 360,
+        inline: false,
+        HTMLAttributes: {
+          class: 'aspect-video w-full max-w-full rounded-xl my-4',
+        },
+        nocookie: true,
       }),
     ],
     content,
@@ -256,12 +279,18 @@ export function TiptapEditor({
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }
 
-  function insertYoutube() {
-    if (!editor) return;
-    const url = window.prompt('Enter YouTube Video URL:');
-    if (url) {
-      editor.commands.setYoutubeVideo({ src: url });
-    }
+  function handleOpenYoutubeModal() {
+    setYoutubeUrlInput('');
+    setIsYoutubeModalOpen(true);
+  }
+
+  function handleInsertYoutube() {
+    if (!editor || !detectedVideoId) return;
+    const cleanUrl = `https://www.youtube.com/watch?v=${detectedVideoId}`;
+    editor.commands.setYoutubeVideo({ src: cleanUrl });
+    toastSuccess('ইউটিউব ভিডিও সফলভাবে যুক্ত হয়েছে!');
+    setIsYoutubeModalOpen(false);
+    setYoutubeUrlInput('');
   }
 
   function insertTable() {
@@ -410,13 +439,13 @@ export function TiptapEditor({
         disabled={isUploading}
       />
 
-      {/* Sticky, Horizontally Scrollable Toolbar */}
+      {/* Horizontally Scrollable & Mobile-Friendly Toolbar */}
       <div className="tiptap-toolbar">
         {/* Bold */}
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('bold') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Bold"
@@ -429,7 +458,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('italic') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Italic"
@@ -442,7 +471,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('underline') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Underline"
@@ -452,14 +481,14 @@ export function TiptapEditor({
         </button>
 
         {/* Text Color Picker */}
-        <div className="relative inline-block">
+        <div className="relative inline-block shrink-0">
           <button
             type="button"
             onClick={() => {
               setIsTextColorOpen((prev) => !prev);
               setIsBgColorOpen(false);
             }}
-            className={`touch-target px-2 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1 ${
+            className={`touch-target px-2 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1 shrink-0 ${
               activeTextColor ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
             }`}
             aria-label="Text Color"
@@ -553,14 +582,14 @@ export function TiptapEditor({
         </div>
 
         {/* Background / Highlight Color Picker */}
-        <div className="relative inline-block">
+        <div className="relative inline-block shrink-0">
           <button
             type="button"
             onClick={() => {
               setIsBgColorOpen((prev) => !prev);
               setIsTextColorOpen(false);
             }}
-            className={`touch-target px-2 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1 ${
+            className={`touch-target px-2 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1 shrink-0 ${
               isHighlightActive ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
             }`}
             aria-label="Highlight Color"
@@ -655,12 +684,11 @@ export function TiptapEditor({
 
         <div className="w-[1px] h-5 bg-slate-300 dark:bg-slate-700 mx-1 shrink-0" />
 
-
         {/* Heading 2 */}
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('heading', { level: 2 }) ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Heading 2"
@@ -673,7 +701,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('heading', { level: 3 }) ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Heading 3"
@@ -686,7 +714,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('blockquote') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Quote"
@@ -701,7 +729,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('bulletList') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Bullet List"
@@ -714,7 +742,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('orderedList') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Numbered List"
@@ -729,7 +757,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={setLink}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors ${
+          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 transition-colors shrink-0 ${
             editor.isActive('link') ? 'bg-[#1b7d95]/15 text-[#1b7d95]' : 'hover:bg-slate-200 dark:hover:bg-slate-800'
           }`}
           aria-label="Insert Link"
@@ -738,40 +766,44 @@ export function TiptapEditor({
           <LinkIcon className="w-4 h-4" />
         </button>
 
-        {/* Direct Computer Folder Image Upload Button */}
+        {/* Direct Computer / Mobile Gallery Image Upload Button */}
         <button
           type="button"
           onClick={handleTriggerComputerFile}
           disabled={isUploading}
-          className={`touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors ${
-            isUploading ? 'opacity-70 animate-pulse text-[#1b7d95]' : ''
+          className={`touch-target flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all shrink-0 ${
+            isUploading
+              ? 'opacity-70 animate-pulse bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 text-emerald-600'
+              : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 active:scale-95'
           }`}
-          aria-label="Upload Image from Computer"
-          title="কম্পিউটার ফোল্ডার থেকে সরাসরি ছবি আপলোড করুন"
+          aria-label="Upload Photo (ছবি আপলোড)"
+          title="কম্পিউটার বা মোবাইল থেকে সরাসরি ছবি আপলোড করুন"
         >
           {isUploading ? (
-            <Loader2 className="w-4 h-4 animate-spin text-[#1b7d95]" />
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
           ) : (
-            <ImageIcon className="w-4 h-4" />
+            <ImageIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           )}
+          <span className="text-xs font-semibold">ছবি</span>
         </button>
 
-        {/* YouTube */}
+        {/* YouTube Video Embed Button */}
         <button
           type="button"
-          onClick={insertYoutube}
-          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-          aria-label="Embed YouTube Video"
-          title="Embed YouTube Video"
+          onClick={handleOpenYoutubeModal}
+          className="touch-target flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300 active:scale-95 transition-all shrink-0"
+          aria-label="Embed YouTube Video (ইউটিউব ভিডিও)"
+          title="ইউটিউব ভিডিও যুক্ত করুন (YouTube Video)"
         >
-          <YoutubeIcon className="w-4 h-4" />
+          <YoutubeIcon className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+          <span className="text-xs font-semibold">ভিডিও</span>
         </button>
 
         {/* Table */}
         <button
           type="button"
           onClick={insertTable}
-          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors shrink-0"
           aria-label="Insert Table"
           title="Insert Table (3x3)"
         >
@@ -784,7 +816,7 @@ export function TiptapEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
-          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors shrink-0"
           aria-label="Clear formatting"
           title="Clear formatting"
         >
@@ -796,7 +828,7 @@ export function TiptapEditor({
           type="button"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors shrink-0"
           aria-label="Undo"
           title="Undo"
         >
@@ -808,7 +840,7 @@ export function TiptapEditor({
           type="button"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors"
+          className="touch-target p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-40 transition-colors shrink-0"
           aria-label="Redo"
           title="Redo"
         >
@@ -921,7 +953,7 @@ export function TiptapEditor({
               onClick={handleTriggerComputerFile}
               className="px-2 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors"
             >
-              কম্পিউটার থেকে ছবি পরিবর্তন
+              ছবি পরিবর্তন
             </button>
             <button
               type="button"
@@ -954,6 +986,84 @@ export function TiptapEditor({
         onConfirm={handleInsertConfiguredImage}
         image={pendingImage}
       />
+
+      {/* Mobile-Friendly YouTube Video Embed Modal */}
+      <Modal
+        isOpen={isYoutubeModalOpen}
+        onClose={() => {
+          setIsYoutubeModalOpen(false);
+          setYoutubeUrlInput('');
+        }}
+        title="ইউটিউব ভিডিও যুক্ত করুন (Insert YouTube Video)"
+        maxWidth="md"
+      >
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">
+              YouTube ভিডিও লিংক (URL) পেস্ট করুন:
+            </label>
+            <input
+              type="url"
+              value={youtubeUrlInput}
+              onChange={(e) => setYoutubeUrlInput(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... অথবা https://youtu.be/..."
+              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-[#1b7d95] focus:ring-2 focus:ring-[#1b7d95]/20 font-mono"
+              autoFocus
+            />
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              ইউটিউব ভিডিও, শর্টস (Shorts) কিংবা শেয়ার লিংক সরাসরি পেস্ট করতে পারেন।
+            </p>
+          </div>
+
+          {/* Validation & Live Preview */}
+          {detectedVideoId ? (
+            <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-950/20 flex flex-col gap-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                <Check className="w-3.5 h-3.5" />
+                <span>সঠিক ভিডিও শনাক্ত হয়েছে (Video ID: {detectedVideoId})</span>
+              </div>
+              <div className="relative aspect-video w-full rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-black">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${detectedVideoId}`}
+                  title="YouTube Preview"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          ) : youtubeUrlInput.trim().length > 0 ? (
+            <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-50/50 dark:bg-amber-950/20 text-xs text-amber-700 dark:text-amber-400">
+              সঠিক YouTube লিংক পাওয়া যায়নি। দয়া করে একটি সঠিক YouTube ভিডিও লিংক দিন।
+            </div>
+          ) : null}
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsYoutubeModalOpen(false);
+                setYoutubeUrlInput('');
+              }}
+            >
+              বাতিল
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              disabled={!detectedVideoId}
+              onClick={handleInsertYoutube}
+              leftIcon={<YoutubeIcon className="w-4 h-4" />}
+            >
+              ভিডিও যুক্ত করুন
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

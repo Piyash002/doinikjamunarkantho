@@ -103,21 +103,38 @@ html, body {
   border-radius: 0.75rem;
   background: var(--admin-card);
   position: relative;
+  overflow: hidden;
 }
 
 .tiptap-toolbar {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   gap: 4px;
-  padding: 8px 12px;
+  padding: 8px 10px;
   background: var(--admin-bg);
   border-bottom: 1px solid var(--admin-border);
   border-top-left-radius: 0.75rem;
   border-top-right-radius: 0.75rem;
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  position: relative; /* Not sticky on mobile/desktop: scrolls naturally with content */
+  top: auto;
+  z-index: 10;
+  touch-action: pan-x;
+}
+
+.tiptap-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .tiptap-toolbar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    padding: 8px 12px;
+  }
 }
 
 .tiptap-content-area mark {
@@ -126,12 +143,45 @@ html, body {
 }
 
 .tiptap-content-area {
-  padding: 16px;
+  padding: 14px;
   min-height: 280px;
   outline: none;
-  font-size: 1.05rem;
+  font-size: 16px; /* Prevents iOS auto-zoom on mobile */
   line-height: 1.75;
   color: var(--admin-text);
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 768px) {
+  .tiptap-content-area {
+    padding: 20px;
+    font-size: 1.05rem;
+  }
+}
+
+/* Responsive YouTube Video Embeds inside TipTap */
+.tiptap-content-area div[data-youtube-video],
+div[data-youtube-video] {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+  clear: both !important;
+  margin: 1.25rem 0 !important;
+  overflow: hidden !important;
+  border-radius: 0.75rem !important;
+}
+
+.tiptap-content-area div[data-youtube-video] iframe,
+div[data-youtube-video] iframe,
+.tiptap-content-area iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+  border: 0 !important;
+  border-radius: 0.75rem !important;
+  display: block !important;
 }
 
 .tiptap-content-area p {

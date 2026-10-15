@@ -18,6 +18,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAdminAuth } from '../AdminAuthContext';
+import { useAdminSettings } from '../AdminSettingsContext';
 import { Dropdown } from '../ui/Dropdown';
 import { Button } from '../ui/Button';
 
@@ -33,6 +34,7 @@ export function AdminTopBar({
   isSidebarCollapsed = false,
 }: AdminTopBarProps) {
   const { user, logout } = useAdminAuth();
+  const { adminPanelName, adminPrimaryColor, adminTealColor } = useAdminSettings();
   const [isDark, setIsDark] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -119,8 +121,11 @@ export function AdminTopBar({
         </button>
 
         <div className="flex flex-col">
-          <span className="text-xs uppercase tracking-wider font-bold text-[#1b7d95] hidden sm:block">
-            Jamunar Kantho CMS
+          <span
+            className="text-xs uppercase tracking-wider font-bold text-[#1b7d95] hidden sm:block truncate max-w-[240px]"
+            style={{ color: adminTealColor || undefined }}
+          >
+            {adminPanelName || 'Editorial CMS'}
           </span>
           <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 truncate max-w-[200px] sm:max-w-none">
             {getPageTitle(pathname)}
@@ -151,7 +156,8 @@ export function AdminTopBar({
         {/* Quick New Post Button (Mobile & Desktop) */}
         <Link
           href="/admin/posts/new"
-          className="touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0a2b3a] dark:bg-[#1b7d95] text-white text-xs sm:text-sm font-semibold hover:bg-[#123e54] dark:hover:bg-[#2092ad] active:scale-95 shadow-sm transition-all"
+          className="touch-target inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0a2b3a] dark:bg-[#1b7d95] text-white text-xs sm:text-sm font-semibold hover:opacity-90 active:scale-95 shadow-sm transition-all"
+          style={{ backgroundColor: adminPrimaryColor || undefined }}
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">New Post</span>
@@ -193,7 +199,10 @@ export function AdminTopBar({
                   <Image src={user.avatar} alt={user.name || 'User'} fill className="object-cover" unoptimized />
                 </div>
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[#0a2b3a] dark:bg-[#1b7d95] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                <div
+                  className="w-8 h-8 rounded-full bg-[#0a2b3a] dark:bg-[#1b7d95] text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm"
+                  style={{ backgroundColor: adminPrimaryColor || undefined }}
+                >
                   {user?.name?.[0] || user?.username?.[0] || 'A'}
                 </div>
               )}

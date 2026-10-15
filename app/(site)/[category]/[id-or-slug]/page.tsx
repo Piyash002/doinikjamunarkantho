@@ -352,7 +352,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const updatedAt = post.updatedAt;
   const authorName = author?.name || String(post.author || "নিজস্ব প্রতিবেদক");
   const authorAvatar = author?.avatar?.url || settings?.logo?.url || "/logo.png";
-  const siteName = settings?.siteName || "SITE_NAME";
+  const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
   const cleanPrintHtml = sanitizeArticle(post.content || "");
   let articleHtml = cleanPrintHtml;
   const paragraphCount = (articleHtml.match(/<p\b[^>]*>[\s\S]*?<\/p>/gi) || []).length;

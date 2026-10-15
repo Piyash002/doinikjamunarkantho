@@ -8,10 +8,11 @@ const categorySchema = new mongoose.Schema(
     order: { type: Number, default: 0 },
     showInNav: { type: Boolean, default: true },
     showOnHome: { type: Boolean, default: true },
+    homeOrder: { type: Number, default: 0 },
     homeLayout: {
       type: String,
       enum: ['hero', 'lead-plus-list', 'grid-4', 'sports-3col', 'intl-3col', 'entertainment-3col'],
-      default: 'hero',
+      default: 'lead-plus-list',
     },
     parent: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
     isActive: { type: Boolean, default: true },
@@ -20,5 +21,6 @@ const categorySchema = new mongoose.Schema(
 );
 
 categorySchema.index({ order: 1 });
+categorySchema.index({ homeOrder: 1 });
 
 export default mongoose.models.Category || mongoose.model('Category', categorySchema);

@@ -11,6 +11,13 @@ export async function getAdminSettings() {
   if (!settings) {
     settings = await Settings.create({
       siteName: 'দৈনিক যমুনা কণ্ঠ',
+      sitePrimaryColor: '#083c4d',
+      siteSecondaryColor: '#1b7d95',
+      siteAccentColor: '#d6a74f',
+      adminPanelName: 'যমুনা কণ্ঠ',
+      adminSubtitle: 'Newsroom',
+      adminPrimaryColor: '#0a2b3a',
+      adminTealColor: '#1b7d95',
       trendingKeywords: ['জাতীয়', 'রাজনীতি', 'অর্থনীতি', 'আন্তর্জাতিক', 'খেলা', 'বিনোদন'],
       copyrightText: '© ২০২৬ দৈনিক যমুনা কণ্ঠ। সর্বস্বত্ব সংরক্ষিত।',
     });
@@ -30,7 +37,12 @@ export async function updateAdminSettings(data: any, session: AdminUserSession) 
     { new: true, upsert: true }
   );
 
-  revalidatePath('/');
+  try {
+    revalidatePath('/', 'layout');
+    revalidatePath('/admin', 'layout');
+  } catch (e) {
+    // Ignore in non-request context
+  }
 
   await logActivity({
     userId: session.id,

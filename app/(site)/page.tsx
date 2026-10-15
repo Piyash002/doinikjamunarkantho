@@ -1,7 +1,7 @@
 import HomePageClient from '@/src/components/site/HomePageClient';
 import Settings from '@/src/models/Settings';
 import AdSlot from '@/src/models/AdSlot';
-import { getHomeData, getNavCategories } from '@/src/services/news';
+import { getHomeData, getNavCategories, getHomepageCategorySections } from '@/src/services/news';
 import { getPublicTrendingTopics } from '@/src/services/adminTagService';
 
 const fallbackTrending: string[] = ['রাজনীতি', 'খেলা', 'অর্থনীতি', 'সারাদেশ', 'টেকনোলজি'];
@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   let navCategories: any[] = [];
+  let categorySections: any[] = [];
   let trendingKeywords: string[] = fallbackTrending;
   let featuredPosts: any[] = [];
   let latestPosts: any[] = [];
@@ -25,16 +26,18 @@ export default async function HomePage() {
   let settings: any = null;
 
   try {
-    const [fetchedSettings, homeData, topicsData, navCats, activeAds] = await Promise.all([
+    const [fetchedSettings, homeData, topicsData, navCats, activeAds, fetchedCatSections] = await Promise.all([
       Settings.findOne({}).lean(),
       getHomeData().catch(() => ({ categories: [], featured: [], latest: [], trending: [], breaking: [] })),
       getPublicTrendingTopics().catch(() => []),
       getNavCategories().catch(() => []),
       AdSlot.find({ isActive: true, imageUrl: { $ne: '' } }).lean().catch(() => []),
+      getHomepageCategorySections().catch(() => []),
     ]);
 
     settings = fetchedSettings;
     navCategories = navCats || [];
+    categorySections = fetchedCatSections || [];
     trendingTopics = topicsData || [];
     siteName = settings?.siteName || fallbackSiteName;
     const rawLogo = settings?.logo?.url;
@@ -104,6 +107,7 @@ export default async function HomePage() {
       trendingPosts={JSON.parse(JSON.stringify(trendingPosts))}
       popularPosts={JSON.parse(JSON.stringify(popularPosts))}
       opinionPosts={JSON.parse(JSON.stringify(opinionPosts))}
+      categorySections={JSON.parse(JSON.stringify(categorySections))}
       ads={JSON.parse(JSON.stringify(adsMap))}
     />
   );

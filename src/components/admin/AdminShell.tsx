@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AdminAuthProvider } from './AdminAuthContext';
+import { AdminSettingsProvider } from './AdminSettingsContext';
 import { ToastProvider } from './ui/Toast';
 import { CommandPalette } from './ui/CommandPalette';
 import { AdminTopBar } from './navigation/AdminTopBar';
@@ -19,7 +20,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   if (pathname === '/admin/login') {
     return (
       <ToastProvider>
-        <AdminAuthProvider>{children}</AdminAuthProvider>
+        <AdminAuthProvider>
+          <AdminSettingsProvider>{children}</AdminSettingsProvider>
+        </AdminAuthProvider>
       </ToastProvider>
     );
   }
@@ -27,7 +30,8 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   return (
     <ToastProvider>
       <AdminAuthProvider>
-        <div className="admin-shell-container w-full min-h-[100dvh] flex bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 overflow-hidden font-sans">
+        <AdminSettingsProvider>
+          <div className="admin-shell-container w-full min-h-[100dvh] flex bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 overflow-hidden font-sans">
           {/* Command Palette shortcut (Ctrl/Cmd+K) */}
           <CommandPalette />
 
@@ -75,6 +79,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             <AdminBottomBar onOpenMore={() => setIsMobileDrawerOpen(true)} />
           </div>
         </div>
+        </AdminSettingsProvider>
       </AdminAuthProvider>
     </ToastProvider>
   );

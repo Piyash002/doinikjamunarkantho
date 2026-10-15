@@ -29,6 +29,68 @@ export async function getHomeData() {
   return { categories, featured, latest, trending, breaking };
 }
 
+export async function getHomepageCategorySections() {
+  await connectToDatabase();
+
+  let pinnedCategories = await Category.find({
+    isActive: true,
+    showOnHome: true,
+    parent: null,
+  })
+    .sort({ homeOrder: 1, order: 1 })
+    .lean();
+
+  if (pinnedCategories.length === 0) {
+    pinnedCategories = await Category.find({
+      isActive: true,
+      parent: null,
+    })
+      .sort({ order: 1 })
+      .limit(6)
+      .lean();
+  }
+
+  const categorySections = await Promise.all(
+    pinnedCategories.map(async (cat, idx) => {
+      const posts = await Post.find({
+        status: 'published',
+        isDeleted: false,
+        $or: [
+          { category: cat.slug },
+          { category: cat.name_bn },
+          { category: cat.name_en },
+        ],
+      })
+        .select('title slug category excerpt featuredImage views publishedAt createdAt')
+        .sort({ publishedAt: -1, createdAt: -1 })
+        .limit(8)
+        .lean();
+
+      return {
+        _id: String(cat._id),
+        name_bn: cat.name_bn,
+        name_en: cat.name_en,
+        slug: cat.slug,
+        homeOrder: typeof cat.homeOrder === 'number' && cat.homeOrder > 0 ? cat.homeOrder : idx + 1,
+        homeLayout: cat.homeLayout || 'lead-plus-list',
+        posts: posts.map((p) => ({
+          _id: String(p._id),
+          slug: p.slug,
+          title: p.title,
+          excerpt: p.excerpt || '',
+          category: p.category,
+          featuredImage: p.featuredImage?.url ? { url: p.featuredImage.url } : null,
+          views: p.views || 0,
+          publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+          createdAt: p.createdAt ? p.createdAt.toISOString() : null,
+        })),
+      };
+    })
+  );
+
+  return categorySections;
+}
+
 export async function getPostsByCategory(categorySlug, page = 1, limit = 12) {
   await connectToDatabase();
 
