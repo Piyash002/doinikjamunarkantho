@@ -388,13 +388,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   await connectToDatabase();
-  const [settings, categories, stickyAd, trendingTopics, staticPagesList] = await Promise.all([
+  const [rawSettings, rawCategories, stickyAd, rawTrendingTopics, rawStaticPagesList] = await Promise.all([
     Settings.findOne({}).sort({ createdAt: -1 }).lean(),
     getNavCategories().catch(() => []),
     AdSlot.findOne({ position: "sticky-bottom", isActive: true, imageUrl: { $ne: "" } }).lean(),
     getPublicTrendingTopics().catch(() => []),
     getPublicStaticPages().catch(() => []),
   ]);
+
+  const settings = rawSettings ? JSON.parse(JSON.stringify(rawSettings)) : null;
+  const categories = JSON.parse(JSON.stringify(rawCategories || []));
+  const trendingTopics = JSON.parse(JSON.stringify(rawTrendingTopics || []));
+  const staticPagesList = JSON.parse(JSON.stringify(rawStaticPagesList || []));
 
   const { post, category, author, related, popular, latest, previous, next, ads } = result;
   const publishedAt = post.publishedAt || post.createdAt;

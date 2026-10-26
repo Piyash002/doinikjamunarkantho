@@ -397,13 +397,13 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     posts,
     latestPosts,
     popularPosts,
-    settings,
-    navCategories,
+    rawSettings,
+    rawNavCategories,
     headerAd,
     sidebarAd,
     betweenAd,
-    trendingTopics,
-    staticPagesList,
+    rawTrendingTopics,
+    rawStaticPagesList,
   ] = await Promise.all([
     Post.countDocuments(postFilter),
     Post.find(postFilter)
@@ -427,6 +427,11 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
     getPublicTrendingTopics().catch(() => []),
     getPublicStaticPages().catch(() => []),
   ]);
+
+  const settings = rawSettings ? JSON.parse(JSON.stringify(rawSettings)) : null;
+  const navCategories = JSON.parse(JSON.stringify(rawNavCategories || []));
+  const trendingTopics = JSON.parse(JSON.stringify(rawTrendingTopics || []));
+  const staticPagesList = JSON.parse(JSON.stringify(rawStaticPagesList || []));
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
   const rawLogo = settings?.logo?.url;

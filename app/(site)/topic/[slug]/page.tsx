@@ -170,13 +170,13 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
     totalPosts,
     posts,
     latestPosts,
-    settings,
-    navCategories,
+    rawSettings,
+    rawNavCategories,
     headerAd,
     sidebarAd,
     betweenAd,
-    trendingTopics,
-    staticPagesList,
+    rawTrendingTopics,
+    rawStaticPagesList,
   ] = await Promise.all([
     Post.countDocuments(postFilter),
     Post.find(postFilter)
@@ -196,6 +196,11 @@ export default async function TopicPage({ params, searchParams }: TopicPageProps
     getPublicTrendingTopics().catch(() => []),
     getPublicStaticPages().catch(() => []),
   ]);
+
+  const settings = rawSettings ? JSON.parse(JSON.stringify(rawSettings)) : null;
+  const navCategories = JSON.parse(JSON.stringify(rawNavCategories || []));
+  const trendingTopics = JSON.parse(JSON.stringify(rawTrendingTopics || []));
+  const staticPagesList = JSON.parse(JSON.stringify(rawStaticPagesList || []));
 
   if (!tagDoc && posts.length === 0) {
     notFound();
