@@ -68,7 +68,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     ];
   }
 
-  const [totalPosts, posts, settings, navCategories, trendingTopics, staticPagesList] = await Promise.all([
+  const [totalPosts, posts, rawSettings, rawNavCategories, rawTrendingTopics, rawStaticPagesList] = await Promise.all([
     query ? Post.countDocuments(postFilter) : Promise.resolve(0),
     query
       ? Post.find(postFilter)
@@ -82,6 +82,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     getPublicTrendingTopics().catch(() => []),
     getPublicStaticPages().catch(() => []),
   ]);
+
+  const settings = rawSettings ? JSON.parse(JSON.stringify(rawSettings)) : null;
+  const navCategories = JSON.parse(JSON.stringify(rawNavCategories || []));
+  const trendingTopics = JSON.parse(JSON.stringify(rawTrendingTopics || []));
+  const staticPagesList = JSON.parse(JSON.stringify(rawStaticPagesList || []));
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
   const logoUrl = settings?.logo?.url || '/logo.png';
