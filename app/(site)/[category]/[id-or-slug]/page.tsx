@@ -51,6 +51,7 @@ function decodeSegment(value: string) {
 }
 
 import { toCleanCategorySlug } from "@/src/lib/categorySlugs";
+import { getSiteOrigin, buildArticleMetadata } from "@/src/lib/seo";
 
 function encodeSegment(value: string) {
   return encodeURIComponent(value);
@@ -66,15 +67,6 @@ function routeFor(categorySlug: string, postOrIdOrSlug: any) {
 
 function routeForHomeCategory(categorySlug: string) {
   return `/${encodeSegment(categorySlug)}`;
-}
-
-function getSiteOrigin() {
-  const configured = process.env.BASE_URL || process.env.URL;
-  try {
-    return new URL(configured || "http://localhost:3000");
-  } catch {
-    return new URL("http://localhost:3000");
-  }
 }
 
 function toPlainText(value: string, maxLength = 160) {
@@ -351,36 +343,35 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   if (!result) return { title: "খবর পাওয়া যায়নি" };
 
   const { post, category } = result;
-  const categorySlug = category?.slug || String(post.category);
-  const postUniqueId = String(post._id || post.slug);
-  const canonical = routeFor(categorySlug, postUniqueId);
+  const categorySlug = toCleanCategorySlug(category?.slug || String(post.category));
+  const postUniqueId = String(post.slug || post._id);
+  const canonicalPath = routeFor(categorySlug, postUniqueId);
   const image = post.featuredImage?.url;
   const title = post.seo?.title || post.title;
-  const description = post.seo?.description || toPlainText(post.excerpt || post.content || post.title);
+  const description = post.seo?.description || post.excerpt || post.content || post.title;
   const publishedTime = post.publishedAt || post.createdAt;
-  const canonicalUrl = new URL(canonical, getSiteOrigin()).toString();
+  const modifiedTime = post.updatedAt || publishedTime;
 
-  return {
+  let siteName = "দৈনিক যমুনা কণ্ঠ";
+  try {
+    await connectToDatabase();
+    const settings = await Settings.findOne({}).select({ siteName: 1 }).lean();
+    if (settings?.siteName) siteName = settings.siteName;
+  } catch {}
+
+  return buildArticleMetadata({
     title,
     description,
-    alternates: { canonical: canonicalUrl },
-    openGraph: {
-      type: "article",
-      url: canonicalUrl,
-      title,
-      description,
-      ...(image ? { images: [{ url: image, alt: post.featuredImage?.caption || post.title }] } : {}),
-      ...(publishedTime ? { publishedTime: new Date(publishedTime).toISOString() } : {}),
-      ...(post.author ? { authors: [String(post.author)] } : {}),
-      ...(Array.isArray(post.tags) ? { tags: post.tags } : {}),
-    },
-    twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title,
-      description,
-      ...(image ? { images: [image] } : {}),
-    },
-  };
+    canonicalPathOrUrl: canonicalPath,
+    imageUrl: image,
+    imageAlt: post.featuredImage?.caption || post.title,
+    publishedTime,
+    modifiedTime,
+    authors: post.author ? [String(post.author)] : undefined,
+    section: category?.name_bn || categorySlug,
+    tags: Array.isArray(post.tags) ? post.tags : undefined,
+    siteName,
+  });
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {

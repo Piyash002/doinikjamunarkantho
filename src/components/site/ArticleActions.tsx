@@ -87,15 +87,35 @@ export default function ArticleActions({
     }
   }
 
-  const rawUrl = shareUrl || (typeof window === "undefined" ? "" : window.location.href);
-  let cleanUrl = rawUrl;
-  try {
-    cleanUrl = decodeURI(rawUrl);
-  } catch {
-    cleanUrl = rawUrl;
-  }
+  const [currentUrl, setCurrentUrl] = useState(shareUrl || "");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        if (shareUrl) {
+          const parsed = new URL(shareUrl, window.location.origin);
+          if (
+            (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+            window.location.hostname !== "localhost" &&
+            window.location.hostname !== "127.0.0.1"
+          ) {
+            parsed.protocol = window.location.protocol;
+            parsed.host = window.location.host;
+          }
+          setCurrentUrl(parsed.toString());
+        } else {
+          setCurrentUrl(window.location.href);
+        }
+      } catch {
+        setCurrentUrl(window.location.href);
+      }
+    }
+  }, [shareUrl]);
+
+  const cleanUrl = currentUrl || shareUrl || (typeof window === "undefined" ? "" : window.location.href);
   const encodedUrl = encodeURIComponent(cleanUrl);
   const encodedTitle = encodeURIComponent(title);
+  const whatsappShareText = encodeURIComponent(`${title}\n\n${cleanUrl}`);
 
   async function copyLink() {
     await registerShare();
@@ -178,7 +198,7 @@ export default function ArticleActions({
           <button
             aria-label="হোয়াটসঅ্যাপে শেয়ার করুন"
             className="share-icon share-whatsapp"
-            onClick={() => openShare(`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`)}
+            onClick={() => openShare(`https://api.whatsapp.com/send?text=${whatsappShareText}`)}
             title="WhatsApp-এ শেয়ার করুন"
             type="button"
           >

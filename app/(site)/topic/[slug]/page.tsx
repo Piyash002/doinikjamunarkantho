@@ -14,6 +14,7 @@ import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
 import Settings from '@/src/models/Settings';
 import Tag from '@/src/models/Tag';
+import { getSiteOrigin, getSocialImageUrl, cleanExcerpt } from '@/src/lib/seo';
 
 export const revalidate = 60;
 
@@ -92,18 +93,39 @@ export async function generateMetadata({ params }: TopicPageProps): Promise<Meta
 
   const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
   const topicName = tag?.name || slug;
+  const topicTitle = `${topicName} - খবর ও আপডেট | ${siteName}`;
+  const topicDesc = cleanExcerpt(
+    tag?.description ||
+    `${topicName} সম্পর্কিত সব গুরুত্বপূর্ণ খবর, প্রতিবেদন ও সর্বশেষ আপডেট এক জায়গায়।`
+  );
+  const origin = getSiteOrigin();
+  const socialImage = getSocialImageUrl(settings?.defaultOgImage || '/logo.png', origin);
 
   return {
-    title: `${topicName} - খবর ও আপডেট | ${siteName}`,
-    description:
-      tag?.description ||
-      `${topicName} সম্পর্কিত সব গুরুত্বপূর্ণ খবর, প্রতিবেদন ও সর্বশেষ আপডেট এক জায়গায়।`,
+    title: topicTitle,
+    description: topicDesc,
     openGraph: {
-      title: `${topicName} - খবর ও আপডেট | ${siteName}`,
-      description:
-        tag?.description ||
-        `${topicName} সম্পর্কিত সব গুরুত্বপূর্ণ খবর, প্রতিবেদন ও সর্বশেষ আপডেট এক জায়গায়।`,
+      title: topicTitle,
+      description: topicDesc,
       type: 'website',
+      siteName,
+      locale: 'bn_BD',
+      images: [
+        {
+          url: socialImage,
+          secureUrl: socialImage,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+          alt: topicTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: topicTitle,
+      description: topicDesc,
+      images: [socialImage],
     },
   };
 }

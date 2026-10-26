@@ -15,6 +15,7 @@ import Category from '@/src/models/Category';
 import Post from '@/src/models/Post';
 import Settings from '@/src/models/Settings';
 import StaticPage from '@/src/models/StaticPage';
+import { getSiteOrigin, getSocialImageUrl, cleanExcerpt } from '@/src/lib/seo';
 
 export const revalidate = 60;
 
@@ -155,15 +156,32 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
     const settings = await Settings.findOne({}).lean();
     const siteName = settings?.siteName || 'দৈনিক যমুনা কণ্ঠ';
     const pageTitle = staticPage.seo?.title || staticPage.title;
-    const pageDesc = staticPage.seo?.description || staticPage.excerpt || `${pageTitle} - ${siteName}`;
+    const pageDesc = cleanExcerpt(staticPage.seo?.description || staticPage.excerpt || `${pageTitle} - ${siteName}`);
+    const origin = getSiteOrigin();
+    const socialImage = getSocialImageUrl(staticPage.featuredImage?.url, origin);
     return {
       title: `${pageTitle} | ${siteName}`,
       description: pageDesc,
       openGraph: {
         title: `${pageTitle} | ${siteName}`,
         description: pageDesc,
-        images: staticPage.featuredImage?.url ? [staticPage.featuredImage.url] : undefined,
+        images: [
+          {
+            url: socialImage,
+            secureUrl: socialImage,
+            width: 1200,
+            height: 630,
+            type: 'image/jpeg',
+            alt: pageTitle,
+          },
+        ],
         type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${pageTitle} | ${siteName}`,
+        description: pageDesc,
+        images: [socialImage],
       },
     };
   }
@@ -198,14 +216,35 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
   const fullTitle = subCategoryName
     ? `${subCategoryName} - ${categoryName} খবর | ${siteName}`
     : `${categoryName} খবর | ${siteName}`;
+  const categoryDesc = cleanExcerpt(`${subCategoryName ? `${subCategoryName}, ` : ''}${categoryName} বিভাগের সর্বশেষ সংবাদ, বিশ্লেষণ ও ভিডিও প্রতিবেদন।`);
+  const origin = getSiteOrigin();
+  const socialImage = getSocialImageUrl(settings?.defaultOgImage || '/logo.png', origin);
 
   return {
     title: fullTitle,
-    description: `${subCategoryName ? `${subCategoryName}, ` : ''}${categoryName} বিভাগের সর্বশেষ সংবাদ, বিশ্লেষণ ও ভিডিও প্রতিবেদন।`,
+    description: categoryDesc,
     openGraph: {
       title: fullTitle,
-      description: `${subCategoryName ? `${subCategoryName}, ` : ''}${categoryName} বিভাগের সর্বশেষ সংবাদ ও প্রতিবেদন।`,
+      description: categoryDesc,
       type: 'website',
+      siteName,
+      locale: 'bn_BD',
+      images: [
+        {
+          url: socialImage,
+          secureUrl: socialImage,
+          width: 1200,
+          height: 630,
+          type: 'image/jpeg',
+          alt: fullTitle,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: fullTitle,
+      description: categoryDesc,
+      images: [socialImage],
     },
   };
 }
