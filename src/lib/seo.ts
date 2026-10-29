@@ -24,7 +24,7 @@ export function getSiteOrigin(): string {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    return 'https://doinikjamunarkantho.com';
+    return 'https://www.dainikjamunarkantho.com';
   }
 
   return 'http://localhost:3000';

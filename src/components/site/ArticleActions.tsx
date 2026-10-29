@@ -56,7 +56,7 @@ export default function ArticleActions({
           setViewCount(result.viewCount);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [postId]);
 
   useEffect(() => {
@@ -113,14 +113,17 @@ export default function ArticleActions({
   }, [shareUrl]);
 
   const cleanUrl = currentUrl || shareUrl || (typeof window === "undefined" ? "" : window.location.href);
-  const encodedUrl = encodeURIComponent(cleanUrl);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const shortShareUrl = postId && origin ? `${origin}/p/${postId}` : cleanUrl;
+  const encodedShareUrl = encodeURIComponent(shortShareUrl);
+  const encodedUrl = encodedShareUrl;
   const encodedTitle = encodeURIComponent(title);
-  const whatsappShareText = encodeURIComponent(`${title}\n\n${cleanUrl}`);
+  const whatsappShareText = encodeURIComponent(`${title}\n\n${shortShareUrl}`);
 
   async function copyLink() {
     await registerShare();
     try {
-      await navigator.clipboard.writeText(cleanUrl);
+      await navigator.clipboard.writeText(shortShareUrl);
       setCopied(true);
       setNotice("লিংক কপি হয়েছে।");
       window.setTimeout(() => setCopied(false), 2500);
@@ -137,7 +140,7 @@ export default function ArticleActions({
   function shareOnWeb() {
     if (navigator.share) {
       void registerShare();
-      void navigator.share({ title, url: cleanUrl }).catch((error: unknown) => {
+      void navigator.share({ title, url: shortShareUrl }).catch((error: unknown) => {
         if (!(error instanceof DOMException && error.name === "AbortError")) {
           setNotice("শেয়ার মেনু খোলা যায়নি।");
         }
@@ -185,7 +188,7 @@ export default function ArticleActions({
           <button
             aria-label="ফেসবুকে শেয়ার করুন"
             className="share-icon share-facebook"
-            onClick={() => openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`)}
+            onClick={() => openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`)}
             title="Facebook-এ শেয়ার করুন"
             type="button"
           >
@@ -248,9 +251,9 @@ export default function ArticleActions({
             </button>
             {moreOpen && (
               <div className="share-more-menu">
-                <button onClick={() => openShare(`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`)} type="button">X (Twitter)-এ শেয়ার</button>
-                <button onClick={() => openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`)} type="button">LinkedIn</button>
-                <button onClick={() => openShare(`https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`)} type="button">Telegram</button>
+                <button onClick={() => openShare(`https://twitter.com/intent/tweet?url=${encodedShareUrl}&text=${encodedTitle}`)} type="button">X (Twitter)-এ শেয়ার</button>
+                <button onClick={() => openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`)} type="button">LinkedIn</button>
+                <button onClick={() => openShare(`https://t.me/share/url?url=${encodedShareUrl}&text=${encodedTitle}`)} type="button">Telegram</button>
                 <button onClick={() => void copyLink()} type="button">লিংক কপি করুন</button>
               </div>
             )}
