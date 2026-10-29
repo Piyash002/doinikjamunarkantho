@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPostBySlug } from '@/src/services/getPostBySlug';
 import { toCleanCategorySlug } from '@/src/lib/categorySlugs';
+import { getSiteOrigin, getSocialImageUrl, cleanExcerpt } from '@/src/lib/seo';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -38,19 +39,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const isBot = /facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|SkypeUriPreview/i.test(userAgent);
 
     if (isBot) {
-      const siteOrigin = new URL(request.url).origin;
+      const siteOrigin = getSiteOrigin();
       const title = result.post.seo?.title || result.post.title || 'দৈনিক যমুনা কণ্ঠ';
       const desc = result.post.seo?.description ||
-        (result.post.excerpt || result.post.content || '')
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 160);
+        cleanExcerpt(result.post.excerpt || result.post.content || '', 180);
 
-      const rawImage = result.post.featuredImage?.url;
-      const imageUrl = rawImage
-        ? (rawImage.startsWith('http') ? rawImage : `${siteOrigin}${rawImage}`)
-        : `${siteOrigin}/logo.png`;
+      const imageUrl = getSocialImageUrl(result.post.featuredImage?.url, siteOrigin);
 
       const html = `<!DOCTYPE html>
 <html lang="bn">
@@ -65,6 +59,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(desc)}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:url" content="${imageUrl}">
   <meta property="og:image:secure_url" content="${imageUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -73,9 +68,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
   <meta name="twitter:title" content="${escapeHtml(title)}">
   <meta name="twitter:description" content="${escapeHtml(desc)}">
   <meta name="twitter:image" content="${imageUrl}">
-  <meta http-equiv="refresh" content="0;url=${targetUrl.toString()}">
 </head>
 <body>
+  <h1>${escapeHtml(title)}</h1>
+  <p>${escapeHtml(desc)}</p>
+  <img src="${imageUrl}" alt="${escapeHtml(title)}" width="1200" height="630" />
   <script>window.location.replace("${targetUrl.toString()}");</script>
 </body>
 </html>`;
